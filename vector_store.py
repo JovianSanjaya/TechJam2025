@@ -194,3 +194,19 @@ class SimpleFallbackStore:
     
     def needs_reindexing(self, documents: List[Dict]) -> bool:
         return len(self.documents) == 0
+
+def get_vector_store():
+    """Get appropriate vector store based on availability"""
+    config = ComplianceConfig()
+    
+    if CHROMADB_AVAILABLE:
+        try:
+            print("🔍 Attempting to use ChromaDB...")
+            store = LegalDocumentVectorStore()
+            print("✅ ChromaDB vector store initialized")
+            return store
+        except Exception as e:
+            print(f"⚠️ ChromaDB initialization failed: {e}")
+    
+    print("📚 Using SimpleFallbackStore...")
+    return SimpleFallbackStore()
