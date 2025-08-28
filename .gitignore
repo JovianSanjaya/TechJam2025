@@ -1,0 +1,19 @@
+# Environment files
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Cache files
+compliance_cache.pkl
+chroma_db/
+
+# Output files (optional - remove if you want to track outputs)
+output.txt
+compliance_report.json
+summary.txt
