@@ -4,7 +4,7 @@
     "features_requiring_compliance": 1,
     "high_risk_features": 0,
     "human_review_needed": 2,
-    "analysis_timestamp": "2025-08-28T21:34:01.216766",
+    "analysis_timestamp": "2025-08-29T00:48:28.445203",
     "system_version": "Enhanced v2.0"
   },
   "detailed_results": [
@@ -21,7 +21,7 @@
       "implementation_notes": [
         "Technical complexity: low"
       ],
-      "timestamp": "2025-08-28T21:34:01.218766",
+      "timestamp": "2025-08-29T00:48:28.446186",
       "code_analysis": {
         "risk_score": 0.6,
         "privacy_concerns_count": 0,
@@ -55,7 +55,7 @@
         "Technical complexity: low",
         "Security considerations: 2"
       ],
-      "timestamp": "2025-08-28T21:34:01.220766",
+      "timestamp": "2025-08-29T00:48:28.446554",
       "code_analysis": {
         "risk_score": 0.782,
         "privacy_concerns_count": 0,
@@ -93,7 +93,7 @@
       "implementation_notes": [
         "Technical complexity: medium"
       ],
-      "timestamp": "2025-08-28T21:34:01.221766",
+      "timestamp": "2025-08-29T00:48:28.446866",
       "code_analysis": {
         "risk_score": 0.0,
         "privacy_concerns_count": 0,
@@ -122,7 +122,7 @@
   "audit_trail": [
     {
       "feature_id": "feat_001",
-      "timestamp": "2025-08-28T21:34:01.218766",
+      "timestamp": "2025-08-29T00:48:28.446186",
       "agents_used": [
         "Intent Classifier",
         "Legal Analyst",
@@ -133,7 +133,7 @@
     },
     {
       "feature_id": "feat_002",
-      "timestamp": "2025-08-28T21:34:01.220766",
+      "timestamp": "2025-08-29T00:48:28.446554",
       "agents_used": [
         "Intent Classifier",
         "Legal Analyst",
@@ -144,7 +144,7 @@
     },
     {
       "feature_id": "feat_003",
-      "timestamp": "2025-08-28T21:34:01.221766",
+      "timestamp": "2025-08-29T00:48:28.446866",
       "agents_used": [
         "Intent Classifier",
         "Legal Analyst",

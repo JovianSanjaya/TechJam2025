@@ -19,3 +19,5 @@ compliance_report.json
 summary.txt
 
 .DS_Store
+
+ compliance_outputs/
