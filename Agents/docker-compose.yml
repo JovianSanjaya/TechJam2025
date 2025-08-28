@@ -2,22 +2,22 @@ version: "3.8"
 
 services:
   backend:
-    build: ./Agents
+    build: ./backend
     container_name: backend_service
     ports:
-      - "5001:5000"
+      - "5000:5000"
     networks:
       - app-net
 
   frontend:
-    build: ./FE
+    build: ./frontend
     container_name: frontend_service
     ports:
-      - "3000:5173"
+      - "3000:3000"
     networks:
       - app-net
     environment:
-      - VITE_API_URL=http://backend:5000   # frontend talks to backend using service name
+      - VITE_API_URL=http://backend:5000   # frontend talks to backend via service name
 
 networks:
   app-net:
