@@ -1,0 +1,282 @@
+{
+  "analysis_summary": {
+    "total_features": 3,
+    "features_requiring_compliance": 3,
+    "high_risk_features": 0,
+    "human_review_needed": 2,
+    "analysis_timestamp": "2025-08-30T00:09:09.370289",
+    "system_version": "Enhanced v2.0"
+  },
+  "detailed_results": [
+    {
+      "feature_id": "feat_001",
+      "feature_name": "Age Verification Gate",
+      "analysis_type": "comprehensive",
+      "needs_compliance_logic": true,
+      "confidence": 1.0,
+      "risk_level": "medium",
+      "action_required": "IMPLEMENT_COMPLIANCE",
+      "applicable_regulations_count": 3,
+      "applicable_regulations": [
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "GDPR",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        }
+      ],
+      "implementation_notes": [
+        "Technical complexity: low"
+      ],
+      "timestamp": "2025-08-30T00:09:25.186995",
+      "code_analysis": {
+        "risk_score": 0.92,
+        "privacy_concerns_count": 2,
+        "age_verification_patterns": 2,
+        "geolocation_patterns": 0,
+        "content_moderation_patterns": 0,
+        "recommendations": [
+          "Implement robust age verification mechanisms",
+          "Consider parental consent requirements for minors",
+          "Review data collection practices for privacy compliance",
+          "Implement clear consent mechanisms",
+          "Implement a robust age verification mechanism that goes beyond user self-reporting, such as using government-issued ID verification or digital identity checks.",
+          "Clearly define the 'apply_privacy_restrictions()' function to ensure it aligns with GDPR requirements, including transparent data processing and user rights fulfillment."
+        ]
+      },
+      "agent_analysis": {
+        "agents_used": [
+          "Intent Classifier",
+          "Legal Analyst",
+          "Technical Analyst"
+        ],
+        "agent_consensus": 0.8333333333333334,
+        "successful_agents": 3,
+        "human_review_needed": false
+      }
+    },
+    {
+      "feature_id": "feat_002",
+      "feature_name": "Geolocation Service",
+      "analysis_type": "comprehensive",
+      "needs_compliance_logic": true,
+      "confidence": 1.0,
+      "risk_level": "medium",
+      "action_required": "HUMAN_REVIEW",
+      "applicable_regulations_count": 4,
+      "applicable_regulations": [
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "GDPR",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "CCPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        }
+      ],
+      "implementation_notes": [
+        "Technical complexity: low",
+        "Security considerations: 2"
+      ],
+      "timestamp": "2025-08-30T00:09:33.472854",
+      "code_analysis": {
+        "risk_score": 0.95,
+        "privacy_concerns_count": 0,
+        "age_verification_patterns": 0,
+        "geolocation_patterns": 1,
+        "content_moderation_patterns": 0,
+        "recommendations": [
+          "Consider data localization requirements",
+          "Implement location-based content restrictions",
+          "Implement age verification checks before collecting geolocation data to ensure COPPA compliance.",
+          "Obtain explicit user consent for geolocation tracking and provide clear information on data usage to comply with GDPR."
+        ]
+      },
+      "agent_analysis": {
+        "agents_used": [
+          "Intent Classifier",
+          "Legal Analyst",
+          "Technical Analyst"
+        ],
+        "agent_consensus": 0.8666666666666667,
+        "successful_agents": 3,
+        "human_review_needed": true
+      }
+    },
+    {
+      "feature_id": "feat_003",
+      "feature_name": "Content Recommendation",
+      "analysis_type": "comprehensive",
+      "needs_compliance_logic": true,
+      "confidence": 1.0,
+      "risk_level": "medium",
+      "action_required": "HUMAN_REVIEW",
+      "applicable_regulations_count": 4,
+      "applicable_regulations": [
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "GDPR",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "CCPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        }
+      ],
+      "implementation_notes": [
+        "Technical complexity: medium"
+      ],
+      "timestamp": "2025-08-30T00:09:54.769893",
+      "code_analysis": {
+        "risk_score": 0.85,
+        "privacy_concerns_count": 0,
+        "age_verification_patterns": 0,
+        "geolocation_patterns": 0,
+        "content_moderation_patterns": 1,
+        "recommendations": [
+          "Implement age verification mechanisms before collecting user preferences.",
+          "Obtain explicit consent from users (or their parents/guardians, if applicable) before collecting and processing their data.",
+          "Integrate content moderation to ensure recommended content is age-appropriate and not harmful."
+        ]
+      },
+      "agent_analysis": {
+        "agents_used": [
+          "Intent Classifier",
+          "Legal Analyst",
+          "Technical Analyst"
+        ],
+        "agent_consensus": 0.8333333333333334,
+        "successful_agents": 3,
+        "human_review_needed": true
+      }
+    }
+  ],
+  "recommendations": [
+    "🔧 3 features require compliance implementation",
+    "👥 2 features need human expert review",
+    "📚 Most relevant regulations: COPPA (6 features), GDPR (3 features), CCPA (2 features)",
+    "💻 High-risk code patterns found in: Age Verification Gate, Geolocation Service, Content Recommendation"
+  ],
+  "audit_trail": [
+    {
+      "feature_id": "feat_001",
+      "timestamp": "2025-08-30T00:09:25.186995",
+      "agents_used": [
+        "Intent Classifier",
+        "Legal Analyst",
+        "Technical Analyst"
+      ],
+      "confidence": 1.0,
+      "action": "IMPLEMENT_COMPLIANCE"
+    },
+    {
+      "feature_id": "feat_002",
+      "timestamp": "2025-08-30T00:09:33.472854",
+      "agents_used": [
+        "Intent Classifier",
+        "Legal Analyst",
+        "Technical Analyst"
+      ],
+      "confidence": 1.0,
+      "action": "HUMAN_REVIEW"
+    },
+    {
+      "feature_id": "feat_003",
+      "timestamp": "2025-08-30T00:09:54.769893",
+      "agents_used": [
+        "Intent Classifier",
+        "Legal Analyst",
+        "Technical Analyst"
+      ],
+      "confidence": 1.0,
+      "action": "HUMAN_REVIEW"
+    }
+  ]
+}

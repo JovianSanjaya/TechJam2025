@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from jargon_resolver import TikTokJargonResolver
 from agents import MultiAgentOrchestrator
-from code_analyzer import CodeAnalyzer
+from code_analyzer_llm_clean import LLMCodeAnalyzer
 from vector_store import get_vector_store
 from config import ComplianceConfig
 
@@ -100,7 +100,7 @@ class EnhancedComplianceSystem:
     def __init__(self):
         self.config = ComplianceConfig()
         self.jargon_resolver = TikTokJargonResolver()
-        self.code_analyzer = CodeAnalyzer()
+        self.code_analyzer = LLMCodeAnalyzer()
         self.vector_store = None
         self.orchestrator = None
         self.analysis_results = []
