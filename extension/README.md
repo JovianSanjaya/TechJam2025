@@ -1,6 +1,6 @@
-# tiktok# TikTok Compliance Analyzer
+# TikTok Compliance Analyzer
 
-A Visual Studio Code extension that analyzes code for TikTok compliance requirements, focusing on privacy regulations, data protection, and regulatory adherence.
+TikTok Compliance Analyzer — a VS Code extension that analyzes code for privacy and regulatory compliance (GDPR, COPPA, etc.).
 
 ## Features
 
@@ -177,27 +177,7 @@ For issues and feature requests, please create an issue in the GitHub repository
 
 ---
 
-**Note**: This extension is designed for TikTok compliance analysis but can be adapted for general privacy and regulatory compliance checking.pliance-analyzer README
-
-This is the README for your extension "tiktok-compliance-analyzer". After writing up a brief description, we recommend including the following sections.
-
-## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+For issues or feature requests, open an issue on the repository. See the package manifest for contributed commands and settings.
 
 For example:
 

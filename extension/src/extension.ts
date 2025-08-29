@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as cp from 'child_process';
 import * as fs from 'fs';
+import { registerChatParticipant } from './chatParticipant';
 
 interface ComplianceResult {
     feature_id: string;
@@ -30,6 +31,9 @@ interface AnalysisResults {
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('TikTok Compliance Analyzer is now active!');
+
+    // Register chat participant
+    registerChatParticipant(context);
 
     // Create output channel for compliance results
     const outputChannel = vscode.window.createOutputChannel('Compliance Analysis');

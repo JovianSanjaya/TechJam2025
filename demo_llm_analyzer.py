@@ -16,7 +16,9 @@ Features:
 """
 
 from code_analyzer_llm_clean import LLMCodeAnalyzer
+from vector_store import get_vector_store
 import os
+import json
 
 def demo_static_analysis():
     """Demo static analysis (no API key needed)"""
@@ -95,20 +97,47 @@ class UserAgeGate:
         return True
 '''
     
-    # LLM-enhanced analysis
-    analyzer = LLMCodeAnalyzer(use_llm=True)
+    # Initialize vector store for RAG
+    print("📚 Initializing vector store for RAG...")
+    try:
+        vector_store = get_vector_store()
+        
+        # Load legal documents if available
+        try:
+            with open('legal_documents.json', 'r') as f:
+                legal_docs = json.load(f)
+            if isinstance(legal_docs, list) and legal_docs:
+                vector_store.add_documents(legal_docs)
+                print(f"   Loaded {len(legal_docs)} legal documents")
+            else:
+                print("   No legal documents found in legal_documents.json")
+        except FileNotFoundError:
+            print("   legal_documents.json not found - using empty vector store")
+        except Exception as e:
+            print(f"   Error loading legal documents: {e}")
+            
+    except Exception as e:
+        print(f"   Vector store initialization failed: {e}")
+        vector_store = None
+    
+    # LLM-enhanced analysis with RAG
+    analyzer = LLMCodeAnalyzer(use_llm=True, vector_store=vector_store)
     result = analyzer.analyze_code_snippet(
         test_code,
         context="TikTok COPPA compliance age gate implementation"
     )
     
-    print(f"Analysis Method: {result['analysis_method']}")
+    print(f"\nAnalysis Method: {result['analysis_method']}")
     print(f"Risk Score: {result['risk_score']:.2f}")
     
     if result.get('llm_insights'):
         insights = result['llm_insights']
         print(f"\n🎯 LLM Assessment: {insights.get('overall_assessment', 'N/A')}")
         print(f"🚨 Key Risks: {', '.join(insights.get('key_risks', []))}")
+        
+        # Show legal references if available (from RAG)
+        if insights.get('legal_references'):
+            print(f"📚 Legal References: {', '.join(insights.get('legal_references', []))}")
     
     print(f"\n📝 Enhanced Recommendations:")
     for i, rec in enumerate(result['recommendations'][:5], 1):

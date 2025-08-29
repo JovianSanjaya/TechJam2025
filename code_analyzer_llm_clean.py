@@ -21,10 +21,13 @@ class CompliancePattern:
 class LLMCodeAnalyzer:
     """Enhanced code analyzer using LLM (Kimi v2) for intelligent compliance analysis"""
     
-    def __init__(self, use_llm: bool = True, force_llm: bool = False):
+    def __init__(self, use_llm: bool = True, force_llm: bool = False, vector_store=None):
         # Load configuration from .env file
         self.api_key = ComplianceConfig.OPENROUTER_API_KEY or ""
         self.model = ComplianceConfig.OPENROUTER_MODEL or "meta-llama/llama-4-maverick:free"
+        
+        # Store vector store for RAG capabilities
+        self.vector_store = vector_store
         
         # Force LLM usage if requested (bypass key check for testing)
         if force_llm:
@@ -47,6 +50,7 @@ class LLMCodeAnalyzer:
         print(f"   API Key: {'✅ Configured' if self.api_key else '❌ Missing'}")
         print(f"   Model: {self.model}")
         print(f"   LLM Enabled: {'✅ Yes' if self.use_llm else '❌ No'}")
+        print(f"   RAG Enabled: {'✅ Yes' if self.vector_store else '❌ No'}")
         
         if not self.use_llm and not force_llm:
             print("⚠️  LLM analysis disabled - using static analysis only")
@@ -105,8 +109,21 @@ class LLMCodeAnalyzer:
         return analysis
     
     def _perform_llm_analysis(self, code: str, context: str, static_analysis: Dict) -> Dict:
-        """Use LLM to enhance compliance analysis"""
-        prompt = self._create_llm_prompt(code, context, static_analysis)
+        """Use LLM to enhance compliance analysis with optional RAG"""
+        # Retrieve relevant legal documents if vector store is available
+        retrieved_docs = None
+        if self.vector_store:
+            try:
+                print("📚 Retrieving relevant legal documents...")
+                search_query = f"{context} {code[:200]}"  # Use context + code snippet for search
+                retrieved_docs = self.vector_store.search_relevant_statutes(search_query, n_results=5)
+                doc_count = len(retrieved_docs.get('documents', [[]])[0]) if retrieved_docs else 0
+                print(f"   Found {doc_count} relevant documents")
+            except Exception as e:
+                print(f"⚠️ Document retrieval failed: {e}")
+                retrieved_docs = None
+        
+        prompt = self._create_llm_prompt(code, context, static_analysis, retrieved_docs)
         
         try:
             response = self._call_openrouter(prompt)
@@ -115,8 +132,24 @@ class LLMCodeAnalyzer:
             print(f"LLM API call failed: {e}")
             raise e
     
-    def _create_llm_prompt(self, code: str, context: str, static_analysis: Dict) -> str:
-        """Create a detailed prompt for LLM analysis"""
+    def _create_llm_prompt(self, code: str, context: str, static_analysis: Dict, retrieved_docs=None) -> str:
+        """Create a detailed prompt for LLM analysis with optional RAG context"""
+        
+        # Build RAG context section
+        rag_context = ""
+        if retrieved_docs and retrieved_docs.get('documents') and retrieved_docs['documents'][0]:
+            rag_context = "\n**📚 RELEVANT LEGAL DOCUMENTS:**\n"
+            documents = retrieved_docs['documents'][0]
+            metadatas = retrieved_docs.get('metadatas', [[]])[0]
+            
+            for i, (doc, meta) in enumerate(zip(documents[:3], metadatas[:3] if metadatas else [{}]*3)):
+                title = meta.get('title', f'Document {i+1}') if meta else f'Document {i+1}'
+                rag_context += f"\n**{title}:**\n{doc[:800]}...\n"
+            
+            rag_context += "\n**Use these legal documents to inform your analysis.**\n"
+        else:
+            rag_context = "\n**📚 LEGAL CONTEXT:** No specific legal documents retrieved - use general compliance knowledge.\n"
+        
         prompt = f"""
 You are an expert compliance analyst specializing in social media platforms like TikTok. 
 Analyze the following code for regulatory compliance issues, particularly focusing on:
@@ -126,6 +159,8 @@ Analyze the following code for regulatory compliance issues, particularly focusi
 3. **Content Moderation** - Age-appropriate content, harmful content filtering
 4. **Geolocation Privacy** - Location tracking, data localization
 5. **Platform-specific regulations** - Youth protection, algorithmic transparency
+
+{rag_context}
 
 **Code to analyze:**
 ```
@@ -151,14 +186,16 @@ Analyze the following code for regulatory compliance issues, particularly focusi
       "description": "detailed_explanation",
       "regulation_hints": ["COPPA", "GDPR", etc.],
       "llm_analysis": "your_detailed_reasoning",
-      "severity": "low|medium|high|critical"
+      "severity": "low|medium|high|critical",
+      "legal_basis": "reference_to_retrieved_documents_if_applicable"
     }}
   ],
   "compliance_insights": {{
     "overall_assessment": "summary",
     "key_risks": ["risk1", "risk2"],
     "regulatory_gaps": ["gap1", "gap2"],
-    "implementation_suggestions": ["suggestion1", "suggestion2"]
+    "implementation_suggestions": ["suggestion1", "suggestion2"],
+    "legal_references": ["references_from_retrieved_docs"]
   }},
   "enhanced_recommendations": [
     "actionable_recommendation_1",
@@ -166,7 +203,8 @@ Analyze the following code for regulatory compliance issues, particularly focusi
   ],
   "confidence_adjustments": {{
     "reasoning": "why_adjustments_made",
-    "adjusted_risk_score": 0.0-1.0
+    "adjusted_risk_score": 0.0-1.0,
+    "rag_influence": "how_retrieved_documents_influenced_analysis"
   }}
 }}
 
@@ -562,8 +600,8 @@ Focus on practical, actionable insights that developers can implement immediatel
 
 # Test function to demonstrate the enhanced analyzer
 def test_llm_analyzer():
-    """Test the LLM-enhanced code analyzer with force LLM option"""
-    print("🧪 Testing LLM-Enhanced Code Analyzer")
+    """Test the LLM-enhanced code analyzer with RAG capabilities"""
+    print("🧪 Testing LLM-Enhanced Code Analyzer with RAG")
     print("=" * 50)
     
     # Sample code for testing
@@ -584,9 +622,29 @@ def get_user_location(ip_address):
     return location
 '''
     
-    # Test with forced LLM usage and .env configuration
-    print("🚀 Initializing analyzer with forced LLM usage...")
-    analyzer = LLMCodeAnalyzer(use_llm=True, force_llm=True)
+    # Initialize vector store for RAG
+    print("🚀 Initializing analyzer with RAG capabilities...")
+    try:
+        from vector_store import get_vector_store
+        vector_store = get_vector_store()
+        print("   Vector store initialized for RAG")
+        
+        # Try to load legal documents
+        try:
+            import json
+            with open('legal_documents.json', 'r') as f:
+                legal_docs = json.load(f)
+            if isinstance(legal_docs, list) and legal_docs:
+                vector_store.add_documents(legal_docs)
+                print(f"   Loaded {len(legal_docs)} legal documents")
+        except:
+            print("   No legal documents loaded (legal_documents.json not found)")
+            
+    except Exception as e:
+        print(f"   Vector store initialization failed: {e}")
+        vector_store = None
+    
+    analyzer = LLMCodeAnalyzer(use_llm=True, force_llm=True, vector_store=vector_store)
     
     print("\n🔍 Starting analysis...")
     result = analyzer.analyze_code_snippet(
@@ -604,6 +662,11 @@ def get_user_location(ip_address):
         insights = result['llm_insights']
         print(f"   Assessment: {insights.get('overall_assessment', 'N/A')}")
         print(f"   Key Risks: {', '.join(insights.get('key_risks', []))}")
+        
+        # Show RAG influence if available
+        confidence_adj = result.get('confidence_adjustments', {})
+        if confidence_adj.get('rag_influence'):
+            print(f"   RAG Influence: {confidence_adj['rag_influence']}")
     
     print(f"\n📋 Recommendations ({len(result.get('recommendations', []))}):")
     for i, rec in enumerate(result.get('recommendations', []), 1):
