@@ -190,77 +190,87 @@ export function Chat() {
 
   return (
     <div className="flex h-[85vh] w-full flex-col overflow-hidden rounded-xl border bg-background shadow-sm">
-      <div className="flex items-center justify-between border-b bg-muted/50 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-green-500" />
-          <span className="text-sm font-medium">AI Assistant</span>
-        </div>
-        <Button variant="ghost" size="sm" onClick={handleReset} className="h-8 px-2">
-          <RotateCcw className="h-4 w-4" />
-          <span className="ml-1">Reset</span>
-        </Button>
-      </div>
-
-      <Conversation className="relative flex-1">
-        <div ref={scrollRef} className="flex-1 overflow-y-auto">
-          <ConversationContent className="space-y-4">
-          {messages.map((message) => (
-            <div key={message.id} className="space-y-3">
-              <Message from={message.role}>
-                <MessageContent>
-                  {message.isStreaming && message.content === '' ? (
-                    <div className="flex items-center gap-2">
-                      <Loader size={14} />
-                      <span className="text-sm text-muted-foreground">Thinking...</span>
-                    </div>
-                  ) : (
-                    message.content
-                  )}
-                </MessageContent>
-              </Message>
-
-              {message.reasoning && (
-                <div className="ml-10">
-                  <Reasoning isStreaming={message.isStreaming} defaultOpen={false}>
-                    <ReasoningTrigger />
-                    <ReasoningContent>{message.reasoning}</ReasoningContent>
-                  </Reasoning>
-                </div>
-              )}
-
-              {/* Sources removed */}
-            </div>
-          ))}
-          </ConversationContent>
-        </div>
-        {showScrollBtn && messages.length > 2 && (
-          <ConversationScrollButton onClick={scrollToBottom} className="absolute bottom-4 right-4" />
-        )}
-      </Conversation>
-
-      <div className="border-t p-4">
-        <PromptInput onSubmit={handleSubmit}>
-          <PromptInputTextarea
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Ask me anything about development, coding, or technology..."
-            disabled={isTyping}
-          />
-          <PromptInputToolbar>
-            <PromptInputTools>
-              <PromptInputButton disabled={isTyping}>
-                <Paperclip className="h-4 w-4" />
-              </PromptInputButton>
-              <PromptInputButton disabled={isTyping}>
-                <Mic className="h-4 w-4" />
-                <span>Voice</span>
-              </PromptInputButton>
-            </PromptInputTools>
-            <PromptInputSubmit disabled={!inputValue.trim() || isTyping} status={isTyping ? 'streaming' : 'ready'} />
-          </PromptInputToolbar>
-        </PromptInput>
-      </div>
+  {/* Header */}
+  <div className="flex items-center justify-between border-b bg-muted/50 px-4 py-3">
+    <div className="flex items-center gap-2">
+      <div className="h-2 w-2 rounded-full bg-green-500" />
+      <span className="text-sm font-medium">AI Assistant</span>
     </div>
+    <Button variant="ghost" size="sm" onClick={handleReset} className="h-8 px-2">
+      <RotateCcw className="h-4 w-4" />
+      <span className="ml-1">Reset</span>
+    </Button>
+  </div>
+
+  {/* Conversation area (scrollable) */}
+  <div className="flex-1 overflow-y-auto">
+    <Conversation className="relative flex flex-col h-full">
+      <ConversationContent className="space-y-4 px-4 py-3">
+        {messages.map((message) => (
+          <div key={message.id} className="space-y-3">
+            <Message from={message.role}>
+              <MessageContent>
+                {message.isStreaming && message.content === '' ? (
+                  <div className="flex items-center gap-2">
+                    <Loader size={14} />
+                    <span className="text-sm text-muted-foreground">Thinking...</span>
+                  </div>
+                ) : (
+                  message.content
+                )}
+              </MessageContent>
+            </Message>
+
+            {message.reasoning && (
+              <div className="ml-10">
+                <Reasoning isStreaming={message.isStreaming} defaultOpen={false}>
+                  <ReasoningTrigger />
+                  <ReasoningContent>{message.reasoning}</ReasoningContent>
+                </Reasoning>
+              </div>
+            )}
+          </div>
+        ))}
+      </ConversationContent>
+
+      {showScrollBtn && messages.length > 2 && (
+        <ConversationScrollButton
+          onClick={scrollToBottom}
+          className="absolute bottom-4 right-4"
+        />
+      )}
+    </Conversation>
+  </div>
+
+  {/* Input bar (sticky at bottom) */}
+  <div className="border-t p-4 bg-background sticky bottom-0">
+    <PromptInput onSubmit={handleSubmit}>
+      <PromptInputTextarea
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder="Ask me anything about development, coding, or technology..."
+        disabled={isTyping}
+      />
+      <PromptInputToolbar>
+        <PromptInputTools>
+          <PromptInputButton disabled={isTyping}>
+            <Paperclip className="h-4 w-4" />
+          </PromptInputButton>
+          <PromptInputButton disabled={isTyping}>
+            <Mic className="h-4 w-4" />
+            <span>Voice</span>
+          </PromptInputButton>
+        </PromptInputTools>
+        <PromptInputSubmit
+          disabled={!inputValue.trim() || isTyping}
+          status={isTyping ? 'streaming' : 'ready'}
+        />
+      </PromptInputToolbar>
+    </PromptInput>
+  </div>
+</div>
+
+    
   )
 }
 

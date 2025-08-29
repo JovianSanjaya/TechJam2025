@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy code
+COPY . .
+
+# Expose container port that Vite dev server listens on
+EXPOSE 5173
+
+# Run in dev mode with hot reload
+CMD ["npm", "run", "dev", "--", "--host"]
