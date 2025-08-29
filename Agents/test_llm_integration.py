@@ -5,7 +5,7 @@ Uses your .env configuration for OpenRouter API with Moonshot KIMI model
 """
 
 import time
-from code_analyzer_llm_clean import LLMCodeAnalyzer
+from Agents.code_analyzer_llm_clean import LLMCodeAnalyzer
 from config import ComplianceConfig
 
 def test_configuration():

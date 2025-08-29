@@ -1,3 +1,6 @@
+
+# to run on docker hub
+
 # version: "3.9"
 
 # services:
@@ -26,11 +29,11 @@
 
 
 
-version: "4.0"
+# to run locally
 
 services:
   backend:
-    build: ./backend
+    build: ./Agents
     container_name: backend_service
     ports:
       - "5001:5000"   # host:container
@@ -38,10 +41,10 @@ services:
       - app-net
 
   frontend:
-    build: ./frontend
+    build: ./FE
     container_name: frontend_service
     ports:
-      - "6000:5173"   # host:container
+      - "3000:5173"   # host:container
     networks:
       - app-net
     environment:

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from jargon_resolver import TikTokJargonResolver
 from agents import MultiAgentOrchestrator
-from code_analyzer_llm_clean import LLMCodeAnalyzer
+from Agents.code_analyzer_llm_clean import LLMCodeAnalyzer
 from vector_store import get_vector_store
 from config import ComplianceConfig
 
