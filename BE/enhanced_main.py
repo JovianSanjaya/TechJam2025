@@ -1,8 +1,5 @@
 import asyncio
 import json
-import csv
-import os
-import requests
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
@@ -104,15 +101,6 @@ class EnhancedComplianceSystem:
         self.vector_store = None
         self.orchestrator = None
         self.analysis_results = []
-        
-        # Competition-specific settings
-        self.output_dir = "compliance_outputs"
-        self.ensure_output_directory()
-    
-    def ensure_output_directory(self):
-        """Ensure output directory exists"""
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
     
     async def initialize(self):
         """Initialize the system components"""
@@ -318,140 +306,130 @@ class EnhancedComplianceSystem:
         
         return recommendations
     
-    async def export_results(self, results: Dict, formats: List[str] = None) -> Dict[str, str]:
-        """Export results in multiple formats"""
+    async def export_results(self, results: Dict, formats: List[str] = None) -> Dict[str, Any]:
+        """Export results in multiple formats - returns data directly instead of writing files"""
         if formats is None:
             formats = ["json", "csv", "summary"]
         
-        export_files = {}
+        export_data = {}
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
-        print(f"\n📤 Exporting results in {len(formats)} formats...")
+        print(f"\n📤 Preparing results in {len(formats)} formats...")
         
         # JSON export (comprehensive)
         if "json" in formats:
-            json_file = os.path.join(self.output_dir, f"compliance_analysis_{timestamp}.json")
-            with open(json_file, 'w', encoding='utf-8') as f:
-                json.dump(results, f, indent=2, ensure_ascii=False)
-            export_files["json"] = json_file
-            print(f"  ✅ JSON report: {json_file}")
+            export_data["json"] = results
+            print(f"  ✅ JSON data prepared")
         
         # CSV export (flattened for competition submission)
         if "csv" in formats:
-            csv_file = os.path.join(self.output_dir, f"compliance_analysis_{timestamp}.csv")
-            self._export_csv(results["detailed_results"], csv_file)
-            export_files["csv"] = csv_file
-            print(f"  ✅ CSV report: {csv_file}")
+            export_data["csv"] = self._prepare_csv_data(results["detailed_results"])
+            print(f"  ✅ CSV data prepared")
         
         # Summary export (executive summary)
         if "summary" in formats:
-            summary_file = os.path.join(self.output_dir, f"compliance_summary_{timestamp}.txt")
-            self._export_summary(results, summary_file)
-            export_files["summary"] = summary_file
-            print(f"  ✅ Summary report: {summary_file}")
+            export_data["summary"] = self._prepare_summary_data(results)
+            print(f"  ✅ Summary data prepared")
         
         # Audit trail export
         if "audit" in formats:
-            audit_file = os.path.join(self.output_dir, f"compliance_audit_{timestamp}.json")
-            with open(audit_file, 'w', encoding='utf-8') as f:
-                json.dump({
-                    "audit_trail": results["audit_trail"],
-                    "system_metadata": {
-                        "analysis_timestamp": results["analysis_summary"]["analysis_timestamp"],
-                        "system_version": results["analysis_summary"]["system_version"],
-                        "total_features": results["analysis_summary"]["total_features"]
-                    }
-                }, f, indent=2, ensure_ascii=False)
-            export_files["audit"] = audit_file
-            print(f"  ✅ Audit trail: {audit_file}")
-        
-        return export_files
-    
-    def _export_csv(self, detailed_results: List[Dict], filename: str):
-        """Export detailed results to CSV format"""
-        fieldnames = [
-            "feature_id", "feature_name", "needs_compliance_logic", "confidence",
-            "risk_level", "action_required", "applicable_regulations_count",
-            "code_risk_score", "privacy_concerns", "age_verification_patterns",
-            "geolocation_patterns", "content_moderation_patterns",
-            "agents_used", "human_review_needed", "timestamp"
-        ]
-        
-        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            
-            for result in detailed_results:
-                row = {
-                    "feature_id": result["feature_id"],
-                    "feature_name": result["feature_name"],
-                    "needs_compliance_logic": result["needs_compliance_logic"],
-                    "confidence": result["confidence"],
-                    "risk_level": result["risk_level"],
-                    "action_required": result["action_required"],
-                    "applicable_regulations_count": result["applicable_regulations_count"],
-                    "code_risk_score": result.get("code_analysis", {}).get("risk_score", 0),
-                    "privacy_concerns": result.get("code_analysis", {}).get("privacy_concerns_count", 0),
-                    "age_verification_patterns": result.get("code_analysis", {}).get("age_verification_patterns", 0),
-                    "geolocation_patterns": result.get("code_analysis", {}).get("geolocation_patterns", 0),
-                    "content_moderation_patterns": result.get("code_analysis", {}).get("content_moderation_patterns", 0),
-                    "agents_used": "|".join(result.get("agent_analysis", {}).get("agents_used", [])),
-                    "human_review_needed": result.get("agent_analysis", {}).get("human_review_needed", False),
-                    "timestamp": result["timestamp"]
+            export_data["audit"] = {
+                "audit_trail": results["audit_trail"],
+                "system_metadata": {
+                    "analysis_timestamp": results["analysis_summary"]["analysis_timestamp"],
+                    "system_version": results["analysis_summary"]["system_version"],
+                    "total_features": results["analysis_summary"]["total_features"]
                 }
-                writer.writerow(row)
-    
-    def _export_summary(self, results: Dict, filename: str):
-        """Export executive summary"""
-        summary = results["analysis_summary"]
+            }
+            print(f"  ✅ Audit trail data prepared")
         
-        with open(filename, 'w', encoding='utf-8') as f:
-            f.write("TikTok Compliance Analysis - Executive Summary\n")
-            f.write("=" * 50 + "\n\n")
+        return export_data
+    
+    def _prepare_csv_data(self, detailed_results: List[Dict]) -> List[Dict]:
+        """Prepare detailed results as CSV data (list of dictionaries)"""
+        csv_data = []
+        
+        for result in detailed_results:
+            row = {
+                "feature_id": result["feature_id"],
+                "feature_name": result["feature_name"],
+                "needs_compliance_logic": result["needs_compliance_logic"],
+                "confidence": result["confidence"],
+                "risk_level": result["risk_level"],
+                "action_required": result["action_required"],
+                "applicable_regulations_count": result["applicable_regulations_count"],
+                "code_risk_score": result.get("code_analysis", {}).get("risk_score", 0),
+                "privacy_concerns": result.get("code_analysis", {}).get("privacy_concerns_count", 0),
+                "age_verification_patterns": result.get("code_analysis", {}).get("age_verification_patterns", 0),
+                "geolocation_patterns": result.get("code_analysis", {}).get("geolocation_patterns", 0),
+                "content_moderation_patterns": result.get("code_analysis", {}).get("content_moderation_patterns", 0),
+                "agents_used": "|".join(result.get("agent_analysis", {}).get("agents_used", [])),
+                "human_review_needed": result.get("agent_analysis", {}).get("human_review_needed", False),
+                "timestamp": result["timestamp"]
+            }
+            csv_data.append(row)
+        
+        return csv_data
+    
+    def _prepare_summary_data(self, results: Dict) -> str:
+        """Prepare executive summary as string data"""
+        summary = results["analysis_summary"]
+        summary_text = []
+        
+        summary_text.append("TikTok Compliance Analysis - Executive Summary")
+        summary_text.append("=" * 50)
+        summary_text.append("")
+        
+        summary_text.append(f"Analysis Date: {summary['analysis_timestamp']}")
+        summary_text.append(f"System Version: {summary['system_version']}")
+        summary_text.append("")
+        
+        summary_text.append("📊 OVERVIEW")
+        summary_text.append("-" * 20)
+        summary_text.append(f"Total Features Analyzed: {summary['total_features']}")
+        summary_text.append(f"Features Requiring Compliance: {summary['features_requiring_compliance']}")
+        summary_text.append(f"High Risk Features: {summary['high_risk_features']}")
+        summary_text.append(f"Human Review Needed: {summary['human_review_needed']}")
+        summary_text.append("")
+        
+        summary_text.append("🎯 KEY RECOMMENDATIONS")
+        summary_text.append("-" * 25)
+        for i, rec in enumerate(results["recommendations"], 1):
+            summary_text.append(f"{i}. {rec}")
+        
+        summary_text.append("")
+        summary_text.append("🔍 DETAILED ANALYSIS")
+        summary_text.append("-" * 20)
+        
+        # High priority features
+        high_priority = [r for r in results["detailed_results"] 
+                       if r["risk_level"] == "high" or r["action_required"] == "URGENT_COMPLIANCE"]
+        
+        if high_priority:
+            summary_text.append("")
+            summary_text.append(f"🚨 HIGH PRIORITY FEATURES ({len(high_priority)}):")
+            for feature in high_priority:
+                summary_text.append(f"  • {feature['feature_name']} (ID: {feature['feature_id']})")
+                summary_text.append(f"    Risk: {feature['risk_level']}, Action: {feature['action_required']}")
+                if feature.get('applicable_regulations'):
+                    reg_names = [reg.get('regulation', 'Unknown') for reg in feature['applicable_regulations'][:2]]
+                    summary_text.append(f"    Regulations: {', '.join(reg_names)}")
+                summary_text.append("")
+        
+        # Compliance features
+        compliance_features = [r for r in results["detailed_results"] if r["needs_compliance_logic"]]
+        if compliance_features:
+            summary_text.append(f"⚖️ COMPLIANCE IMPLEMENTATION NEEDED ({len(compliance_features)}):")
+            for feature in compliance_features[:10]:  # Top 10
+                summary_text.append(f"  • {feature['feature_name']} (Confidence: {feature['confidence']:.2f})")
             
-            f.write(f"Analysis Date: {summary['analysis_timestamp']}\n")
-            f.write(f"System Version: {summary['system_version']}\n\n")
-            
-            f.write("📊 OVERVIEW\n")
-            f.write("-" * 20 + "\n")
-            f.write(f"Total Features Analyzed: {summary['total_features']}\n")
-            f.write(f"Features Requiring Compliance: {summary['features_requiring_compliance']}\n")
-            f.write(f"High Risk Features: {summary['high_risk_features']}\n")
-            f.write(f"Human Review Needed: {summary['human_review_needed']}\n\n")
-            
-            f.write("🎯 KEY RECOMMENDATIONS\n")
-            f.write("-" * 25 + "\n")
-            for i, rec in enumerate(results["recommendations"], 1):
-                f.write(f"{i}. {rec}\n")
-            
-            f.write(f"\n🔍 DETAILED ANALYSIS\n")
-            f.write("-" * 20 + "\n")
-            
-            # High priority features
-            high_priority = [r for r in results["detailed_results"] 
-                           if r["risk_level"] == "high" or r["action_required"] == "URGENT_COMPLIANCE"]
-            
-            if high_priority:
-                f.write(f"\n🚨 HIGH PRIORITY FEATURES ({len(high_priority)}):\n")
-                for feature in high_priority:
-                    f.write(f"  • {feature['feature_name']} (ID: {feature['feature_id']})\n")
-                    f.write(f"    Risk: {feature['risk_level']}, Action: {feature['action_required']}\n")
-                    if feature.get('applicable_regulations'):
-                        reg_names = [reg.get('regulation', 'Unknown') for reg in feature['applicable_regulations'][:2]]
-                        f.write(f"    Regulations: {', '.join(reg_names)}\n")
-                    f.write("\n")
-            
-            # Compliance features
-            compliance_features = [r for r in results["detailed_results"] if r["needs_compliance_logic"]]
-            if compliance_features:
-                f.write(f"\n⚖️ COMPLIANCE IMPLEMENTATION NEEDED ({len(compliance_features)}):\n")
-                for feature in compliance_features[:10]:  # Top 10
-                    f.write(f"  • {feature['feature_name']} (Confidence: {feature['confidence']:.2f})\n")
-                
-                if len(compliance_features) > 10:
-                    f.write(f"  ... and {len(compliance_features) - 10} more features\n")
-            
-            f.write(f"\n📋 For complete details, see the JSON and CSV reports.\n")
+            if len(compliance_features) > 10:
+                summary_text.append(f"  ... and {len(compliance_features) - 10} more features")
+        
+        summary_text.append("")
+        summary_text.append("📋 For complete details, see the JSON and CSV data.")
+        
+        return "\n".join(summary_text)
 
 async def main():
     """Main function for testing the enhanced system"""
@@ -502,11 +480,18 @@ def recommend_content(user_profile):
     results = await system.analyze_feature_list(sample_features, include_code_analysis=True)
     
     # Export in all formats
-    export_files = await system.export_results(results, formats=["json", "csv", "summary", "audit"])
+    export_data = await system.export_results(results, formats=["json", "csv", "summary", "audit"])
     
-    print(f"\n🎯 Analysis complete! Files exported:")
-    for format_type, file_path in export_files.items():
-        print(f"  📄 {format_type.upper()}: {file_path}")
+    print(f"\n🎯 Analysis complete! Data prepared:")
+    for format_type, data in export_data.items():
+        if format_type == "json":
+            print(f"  📄 {format_type.upper()}: {len(str(data))} characters of JSON data")
+        elif format_type == "csv":
+            print(f"  📄 {format_type.upper()}: {len(data)} rows of CSV data")
+        elif format_type == "summary":
+            print(f"  📄 {format_type.upper()}: {len(data)} characters of summary text")
+        elif format_type == "audit":
+            print(f"  📄 {format_type.upper()}: Audit trail with {len(data.get('audit_trail', []))} entries")
 
 # Only run main when script is executed directly, not when imported
 if __name__ == "__main__":
