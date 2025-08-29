@@ -4,6 +4,55 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 import { registerChatParticipant } from './chatParticipant';
 
+// Resolve python command: prefer configured path, then common Windows paths, then 'py', then 'python'
+function resolvePythonCmd(configured: string): string {
+    const tryCmd = (cmd: string): boolean => {
+        try {
+            console.log(`Testing Python command: ${cmd}`);
+            const res = cp.spawnSync(cmd, ['--version'], { 
+                encoding: 'utf8',
+                timeout: 5000,
+                windowsHide: true,
+                shell: true  // Add shell option for Windows compatibility
+            }) as cp.SpawnSyncReturns<string>;
+            const success = res.status === 0;
+            console.log(`Command ${cmd} result: ${success ? 'SUCCESS' : 'FAILED'}`);
+            return success;
+        } catch (e) {
+            console.log(`Command ${cmd} error: ${e}`);
+            return false;
+        }
+    };
+
+    // Try configured path first (if it's a real path, not just 'python')
+    if (configured && configured !== 'python' && configured !== 'py' && tryCmd(configured)) {
+        console.log(`Using configured Python: ${configured}`);
+        return configured;
+    }
+
+    // Common Windows Python paths to try (in order of preference)
+    const commonPaths = [
+        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Python312\\python.exe',  // Known working path first
+        'C:\\Users\\58dya\\anaconda3\\python.exe',
+        'python',  // Try python in PATH
+        'py',  // Try py.exe (Python Launcher)
+        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Launcher\\py.exe',
+        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Python311\\python.exe',
+        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Python310\\python.exe'
+    ];
+
+    for (const pythonPath of commonPaths) {
+        if (tryCmd(pythonPath)) {
+            console.log(`Found working Python: ${pythonPath}`);
+            return pythonPath;
+        }
+    }
+
+    // Fallback to configured value (will likely fail but gives better error message)
+    console.log(`No working Python found, falling back to: ${configured || 'python'}`);
+    return configured || 'python';
+}
+
 interface ComplianceResult {
     feature_id: string;
     feature_name: string;
@@ -13,6 +62,16 @@ interface ComplianceResult {
     action_required: string;
     applicable_regulations: any[];
     implementation_notes: string[];
+    code_issues?: Array<{
+        line_reference: string;
+        problematic_code: string;
+        violation_type: string;
+        severity: string;
+        regulation_violated: string;
+        fix_description: string;
+        suggested_replacement: string;
+        testing_requirements: string;
+    }>;
     timestamp: string;
 }
 
@@ -32,8 +91,15 @@ interface AnalysisResults {
 // Global chat panel reference for persistence
 let globalChatPanel: vscode.WebviewPanel | null = null;
 
+// Global variables for diagnostics
+let complianceDiagnostics: vscode.DiagnosticCollection;
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('TikTok Compliance Analyzer is now active!');
+
+    // Create diagnostic collection for compliance issues
+    complianceDiagnostics = vscode.languages.createDiagnosticCollection('tiktok-compliance');
+    context.subscriptions.push(complianceDiagnostics);
 
     // Register chat participant
     registerChatParticipant(context);
@@ -104,6 +170,8 @@ async function analyzeCurrentFile(outputChannel: vscode.OutputChannel, context: 
 
             if (result) {
                 displayResults(result, outputChannel);
+                // Create inline diagnostics for code issues
+                createComplianceDiagnostics(document, result);
                 // Render result into the chat panel
                 renderChatMessage(chatPanel, 'assistant', formatResultAsHtml(result));
             }
@@ -174,11 +242,12 @@ async function runComplianceAnalysis(features: any[], context: vscode.ExtensionC
         const pythonScript = path.join(context.extensionPath, 'src', 'python', 'compliance_analyzer.py');
         const inputData = JSON.stringify({ features });
 
-        // Get Python path from configuration
-        const config = vscode.workspace.getConfiguration('tiktokCompliance');
-        const pythonCmd = config.get<string>('pythonPath', 'python');
-        
-        const child = cp.spawn(pythonCmd, [pythonScript], {
+    // Resolve Python command (configured -> py -> python)
+    const config = vscode.workspace.getConfiguration('tiktokCompliance');
+    const configured = config.get<string>('pythonPath', 'python');
+    const pythonCmd = resolvePythonCmd(configured);
+
+    const child = cp.spawn(pythonCmd, [pythonScript], {
             cwd: path.join(context.extensionPath, 'src', 'python'),
             stdio: ['pipe', 'pipe', 'pipe']
         });
@@ -221,6 +290,83 @@ async function runComplianceAnalysis(features: any[], context: vscode.ExtensionC
     });
 }
 
+function createComplianceDiagnostics(document: vscode.TextDocument, result: AnalysisResults) {
+    const diagnostics: vscode.Diagnostic[] = [];
+    const code = document.getText();
+    
+    for (const detailResult of result.detailed_results) {
+        if (detailResult.code_issues) {
+            for (const issue of detailResult.code_issues) {
+                // Try to find the problematic code in the document
+                const codeToFind = issue.problematic_code.trim();
+                const codeIndex = code.indexOf(codeToFind);
+                
+                if (codeIndex !== -1) {
+                    // Find the line and character position
+                    const position = document.positionAt(codeIndex);
+                    const endPosition = document.positionAt(codeIndex + codeToFind.length);
+                    const range = new vscode.Range(position, endPosition);
+                    
+                    // Determine diagnostic severity
+                    let severity: vscode.DiagnosticSeverity;
+                    switch (issue.severity.toLowerCase()) {
+                        case 'critical':
+                            severity = vscode.DiagnosticSeverity.Error;
+                            break;
+                        case 'high':
+                            severity = vscode.DiagnosticSeverity.Error;
+                            break;
+                        case 'medium':
+                            severity = vscode.DiagnosticSeverity.Warning;
+                            break;
+                        default:
+                            severity = vscode.DiagnosticSeverity.Information;
+                    }
+                    
+                    const diagnostic = new vscode.Diagnostic(
+                        range,
+                        `[${issue.regulation_violated}] ${issue.fix_description}`,
+                        severity
+                    );
+                    
+                    diagnostic.code = issue.violation_type;
+                    diagnostic.source = 'TikTok Compliance';
+                    
+                    // Add detailed information
+                    diagnostic.relatedInformation = [
+                        new vscode.DiagnosticRelatedInformation(
+                            new vscode.Location(document.uri, range),
+                            `Suggested fix: ${issue.suggested_replacement || 'See implementation notes'}`
+                        )
+                    ];
+                    
+                    diagnostics.push(diagnostic);
+                } else {
+                    // If exact code not found, create a general diagnostic for the line reference
+                    const lineMatch = issue.line_reference.match(/line\s*(\d+)/i);
+                    if (lineMatch) {
+                        const lineNumber = parseInt(lineMatch[1]) - 1; // Convert to 0-based
+                        if (lineNumber >= 0 && lineNumber < document.lineCount) {
+                            const line = document.lineAt(lineNumber);
+                            const diagnostic = new vscode.Diagnostic(
+                                line.range,
+                                `[${issue.regulation_violated}] ${issue.fix_description}`,
+                                vscode.DiagnosticSeverity.Warning
+                            );
+                            diagnostic.code = issue.violation_type;
+                            diagnostic.source = 'TikTok Compliance';
+                            diagnostics.push(diagnostic);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Set diagnostics for the document
+    complianceDiagnostics.set(document.uri, diagnostics);
+}
+
 function displayResults(results: AnalysisResults, outputChannel: vscode.OutputChannel) {
     const summary = results.analysis_summary;
     
@@ -252,6 +398,21 @@ function displayResults(results: AnalysisResults, outputChannel: vscode.OutputCh
                 outputChannel.appendLine(`   Implementation Notes:`);
                 result.implementation_notes.forEach(note => {
                     outputChannel.appendLine(`   • ${note}`);
+                });
+            }
+
+            // Display code issues with highlighting information
+            if (result.code_issues && result.code_issues.length > 0) {
+                outputChannel.appendLine(`   🚩 Code Issues Found: ${result.code_issues.length}`);
+                result.code_issues.forEach((issue, issueIndex) => {
+                    outputChannel.appendLine(`   ${issueIndex + 1}. [${issue.severity.toUpperCase()}] ${issue.violation_type}`);
+                    outputChannel.appendLine(`      Location: ${issue.line_reference}`);
+                    outputChannel.appendLine(`      Problematic Code: ${issue.problematic_code}`);
+                    outputChannel.appendLine(`      Regulation: ${issue.regulation_violated}`);
+                    outputChannel.appendLine(`      Fix: ${issue.fix_description}`);
+                    if (issue.suggested_replacement) {
+                        outputChannel.appendLine(`      Suggested: ${issue.suggested_replacement}`);
+                    }
                 });
             }
         });

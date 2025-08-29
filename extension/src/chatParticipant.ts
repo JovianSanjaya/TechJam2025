@@ -3,10 +3,59 @@ import * as path from 'path';
 import * as cp from 'child_process';
 import * as fs from 'fs';
 
+// Resolve python command: prefer configured path, then common Windows paths, then 'py', then 'python'
+function resolvePythonCmdLocal(configured: string): string {
+    const tryCmd = (cmd: string): boolean => {
+        try {
+            const res = cp.spawnSync(cmd, ['--version'], { 
+                encoding: 'utf8',
+                timeout: 5000,
+                windowsHide: true 
+            }) as cp.SpawnSyncReturns<string>;
+            return res.status === 0;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    // Try configured path first
+    if (configured && configured !== 'python' && tryCmd(configured)) {
+        return configured;
+    }
+
+    // Common Windows Python paths to try
+    const commonPaths = [
+        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Python312\\python.exe',
+        'C:\\Users\\58dya\\anaconda3\\python.exe',
+        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Launcher\\py.exe',
+        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Python38-32\\python.exe',
+        'py',
+        'python'
+    ];
+
+    for (const path of commonPaths) {
+        if (tryCmd(path)) {
+            return path;
+        }
+    }
+
+    return configured || 'python';
+}
+
 interface LLMAnalysisResult {
     analysis_method: string;
     risk_score: number;
     compliance_patterns: any[];
+    code_issues?: Array<{
+        line_reference: string;
+        problematic_code: string;
+        violation_type: string;
+        severity: string;
+        regulation_violated: string;
+        fix_description: string;
+        suggested_replacement: string;
+        testing_requirements: string;
+    }>;
     llm_insights?: {
         overall_assessment: string;
         key_risks: string[];
@@ -204,8 +253,9 @@ if __name__ == "__main__":
 
             // Execute the Python script
             const pythonPath = vscode.workspace.getConfiguration('tiktokCompliance').get('pythonPath', 'python');
-            
-            cp.exec(`"${pythonPath}" "${scriptPath}"`, { 
+            const resolved = resolvePythonCmdLocal(pythonPath as string);
+
+            cp.exec(`"${resolved}" "${scriptPath}"`, { 
                 cwd: workspaceFolder.uri.fsPath,
                 timeout: 60000 // 60 second timeout
             }, (error, stdout, stderr) => {
@@ -305,6 +355,31 @@ if __name__ == "__main__":
             });
         }
 
+        // Code Issues (if available)
+        if (result.code_issues && result.code_issues.length > 0) {
+            stream.markdown(`## 🚩 Code Issues Found\n\n`);
+            result.code_issues.forEach((issue, index) => {
+                const severityEmoji = this.getSeverityEmoji(issue.severity);
+                stream.markdown(`### ${index + 1}. ${severityEmoji} ${issue.violation_type}\n\n`);
+                stream.markdown(`**Severity:** ${issue.severity.toUpperCase()} | **Regulation:** ${issue.regulation_violated}\n\n`);
+                
+                // Display problematic code in a code block
+                stream.markdown(`**Problematic Code:**\n`);
+                stream.markdown(`\`\`\`python\n${issue.problematic_code}\n\`\`\`\n\n`);
+                
+                stream.markdown(`**Issue:** ${issue.fix_description}\n\n`);
+                
+                if (issue.suggested_replacement) {
+                    stream.markdown(`**Suggested Fix:**\n`);
+                    stream.markdown(`\`\`\`python\n${issue.suggested_replacement}\n\`\`\`\n\n`);
+                }
+                
+                if (issue.testing_requirements) {
+                    stream.markdown(`**Testing:** ${issue.testing_requirements}\n\n`);
+                }
+            });
+        }
+
         // Recommendations
         if (result.recommendations && result.recommendations.length > 0) {
             stream.markdown(`## 💡 Recommendations\n\n`);
@@ -336,6 +411,21 @@ if __name__ == "__main__":
             return '🟡';
         }
         return '🟢';
+    }
+
+    private getSeverityEmoji(severity: string): string {
+        switch (severity.toLowerCase()) {
+            case 'critical':
+                return '🚨';
+            case 'high':
+                return '🔴';
+            case 'medium':
+                return '🟡';
+            case 'low':
+                return '🟢';
+            default:
+                return '⚪';
+        }
     }
 }
 

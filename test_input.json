@@ -1,0 +1,1 @@
+{"features": [{"id": "test_001", "feature_name": "register_user", "description": "User registration function", "code": "def register_user(user_data):\n    password = user_data.get('password')\n    # No consent check\n    return {'status': 'registered'}"}]}

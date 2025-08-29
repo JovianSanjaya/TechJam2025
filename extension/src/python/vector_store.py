@@ -2,12 +2,17 @@ try:
     import chromadb
     from chromadb.utils import embedding_functions
     CHROMADB_AVAILABLE = True
-except ImportError:
+except (ImportError, RuntimeError) as e:
     CHROMADB_AVAILABLE = False
-    print("ChromaDB not available. Install with: pip install chromadb")
+    import sys
+    if "sqlite3" in str(e).lower():
+        print("ChromaDB not available due to SQLite version incompatibility. Using fallback store.", file=sys.stderr)
+    else:
+        print(f"ChromaDB not available: {e}. Using fallback store.", file=sys.stderr)
 
 import hashlib
 import json
+import sys
 from typing import List, Dict, Any
 from config import ComplianceConfig
 
@@ -144,11 +149,11 @@ class LegalDocumentVectorStore:
 class SimpleFallbackStore:
     def __init__(self, collection_name="legal_docs"):
         self.documents = []
-        print("Using fallback document store (no vector search)")
+        print("Using fallback document store (no vector search)", file=sys.stderr)
     
     def add_documents(self, documents: List[Dict]):
         self.documents = documents
-        print(f"Loaded {len(documents)} documents into fallback store")
+        print(f"Loaded {len(documents)} documents into fallback store", file=sys.stderr)
     
     def search_relevant_statutes(self, feature_description: str, n_results=10) -> Dict:
         """Simple keyword-based search as fallback"""
@@ -197,16 +202,26 @@ class SimpleFallbackStore:
 
 def get_vector_store():
     """Get appropriate vector store based on availability"""
-    config = ComplianceConfig()
+    from config import ComplianceConfig
     
+    # First try ChromaDB if available
     if CHROMADB_AVAILABLE:
         try:
-            print("🔍 Attempting to use ChromaDB...")
+            print("🔍 Attempting to use ChromaDB vector store...", file=sys.stderr)
             store = LegalDocumentVectorStore()
-            print("✅ ChromaDB vector store initialized")
+            print("✅ ChromaDB vector store initialized successfully", file=sys.stderr)
             return store
+        except RuntimeError as e:
+            if "sqlite3" in str(e).lower():
+                print(f"⚠️  ChromaDB failed due to SQLite version: {str(e)[:100]}...", file=sys.stderr)
+                print("📚 Falling back to SimpleFallbackStore for RAG functionality...", file=sys.stderr)
+            else:
+                print(f"⚠️  ChromaDB initialization failed: {e}", file=sys.stderr)
         except Exception as e:
-            print(f"⚠️ ChromaDB initialization failed: {e}")
+            print(f"⚠️  ChromaDB initialization failed: {e}", file=sys.stderr)
+    else:
+        print("📦 ChromaDB not available - using fallback store", file=sys.stderr)
     
-    print("📚 Using SimpleFallbackStore...")
+    # Fallback to simple store
+    print("📚 Using SimpleFallbackStore for keyword-based RAG...", file=sys.stderr)
     return SimpleFallbackStore()
