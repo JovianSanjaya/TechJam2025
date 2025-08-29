@@ -29,6 +29,9 @@ interface AnalysisResults {
     recommendations: string[];
 }
 
+// Global chat panel reference for persistence
+let globalChatPanel: vscode.WebviewPanel | null = null;
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('TikTok Compliance Analyzer is now active!');
 
@@ -78,6 +81,10 @@ async function analyzeCurrentFile(outputChannel: vscode.OutputChannel, context: 
     outputChannel.appendLine('=' .repeat(50));
     outputChannel.show();
 
+    // Open a dedicated chat-like panel for this analysis
+    const chatPanel = getOrCreateChatPanel(context);
+    renderChatMessage(chatPanel, 'user', `Analyze file: <strong>${fileName}</strong>`);
+
     try {
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -97,6 +104,8 @@ async function analyzeCurrentFile(outputChannel: vscode.OutputChannel, context: 
 
             if (result) {
                 displayResults(result, outputChannel);
+                // Render result into the chat panel
+                renderChatMessage(chatPanel, 'assistant', formatResultAsHtml(result));
             }
         });
     } catch (error) {
@@ -361,3 +370,228 @@ function getWebviewContent(): string {
 }
 
 export function deactivate() {}
+
+// --- Chat panel helpers ---
+function getOrCreateChatPanel(context: vscode.ExtensionContext): vscode.WebviewPanel {
+    if (globalChatPanel && !globalChatPanel.visible) {
+        globalChatPanel.reveal();
+        return globalChatPanel;
+    }
+    
+    if (!globalChatPanel) {
+        globalChatPanel = vscode.window.createWebviewPanel(
+            'complianceChat',
+            'Compliance Chat',
+            vscode.ViewColumn.Beside,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true
+            }
+        );
+
+        // Handle panel disposal
+        globalChatPanel.onDidDispose(() => {
+            globalChatPanel = null;
+        });
+
+        // Handle messages from webview
+        globalChatPanel.webview.onDidReceiveMessage(
+            message => {
+                switch (message.type) {
+                    case 'followUpQuery':
+                        handleFollowUpQuery(message.query, context);
+                        break;
+                    case 'copyResult':
+                        vscode.env.clipboard.writeText(message.content);
+                        vscode.window.showInformationMessage('Copied to clipboard!');
+                        break;
+                    case 'exportJson':
+                        exportResultAsJson(message.data);
+                        break;
+                }
+            },
+            undefined,
+            context.subscriptions
+        );
+
+        // Initialize content
+        globalChatPanel.webview.html = getChatWebviewContent();
+    }
+    
+    return globalChatPanel;
+}
+
+function openChatPanel(title: string): vscode.WebviewPanel {
+        const panel = vscode.window.createWebviewPanel(
+                'complianceChat',
+                title,
+                vscode.ViewColumn.Beside,
+                {
+                        enableScripts: true,
+                        retainContextWhenHidden: true
+                }
+        );
+
+        // Initialize content
+        panel.webview.html = getChatWebviewContent();
+        return panel;
+}
+
+function renderChatMessage(panel: vscode.WebviewPanel, role: 'user' | 'assistant', htmlContent: string) {
+        try {
+                panel.webview.postMessage({ type: 'appendMessage', role, content: htmlContent });
+        } catch (e) {
+                console.error('Failed to post message to chat panel', e);
+        }
+}
+
+function formatResultAsHtml(results: any): string {
+    // simple HTML formatting for the analysis results
+    const summary = results.analysis_summary;
+    let html = `<div class="result-summary"><strong>Summary</strong><p>Analyzed: ${summary.total_features} feature(s). High risk: ${summary.high_risk_features}.</p></div>`;
+    html += '<div class="result-details">';
+    results.detailed_results.forEach((r: any, idx: number) => {
+        html += `<div class="feature"><h3>${idx + 1}. ${r.feature_name} — ${r.risk_level}</h3>`;
+        html += `<p>Confidence: ${(r.confidence * 100).toFixed(1)}%</p>`;
+        if (r.implementation_notes && r.implementation_notes.length) {
+            html += '<ul>' + r.implementation_notes.map((n: string) => `<li>${n}</li>`).join('') + '</ul>';
+        }
+        html += '</div>';
+    });
+    html += '</div>';
+    
+    // Add action buttons
+    html += `<div class="action-buttons">
+        <button onclick="copyResult('${escapeForJs(JSON.stringify(results))}')">📋 Copy JSON</button>
+        <button onclick="exportJson('${escapeForJs(JSON.stringify(results))}')">💾 Export JSON</button>
+    </div>`;
+    
+    return html;
+}
+
+async function handleFollowUpQuery(query: string, context: vscode.ExtensionContext) {
+    try {
+        const chatPanel = getOrCreateChatPanel(context);
+        renderChatMessage(chatPanel, 'user', `<strong>Follow-up:</strong> ${query}`);
+        
+        // Simple follow-up analysis using the query as code
+        const result = await runComplianceAnalysis([{
+            id: `followup_${Date.now()}`,
+            feature_name: 'Follow-up Query',
+            description: `Follow-up analysis: ${query}`,
+            code: query
+        }], context);
+        
+        if (result) {
+            renderChatMessage(chatPanel, 'assistant', formatResultAsHtml(result));
+        }
+    } catch (error) {
+        vscode.window.showErrorMessage(`Follow-up analysis failed: ${error}`);
+    }
+}
+
+async function exportResultAsJson(data: any) {
+    try {
+        const uri = await vscode.window.showSaveDialog({
+            defaultUri: vscode.Uri.file('compliance-analysis.json'),
+            filters: {
+                'JSON Files': ['json']
+            }
+        });
+        
+        if (uri) {
+            const content = JSON.stringify(data, null, 2);
+            await vscode.workspace.fs.writeFile(uri, Buffer.from(content, 'utf8'));
+            vscode.window.showInformationMessage(`Analysis exported to ${uri.fsPath}`);
+        }
+    } catch (error) {
+        vscode.window.showErrorMessage(`Export failed: ${error}`);
+    }
+}
+
+function escapeForJs(str: string): string {
+    return str.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+}
+
+function getChatWebviewContent(): string {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compliance Chat</title>
+  <style>
+    body { font-family: var(--vscode-font-family); padding: 12px; color: var(--vscode-foreground); background: var(--vscode-editor-background); margin: 0; }
+    .chat-container { display: flex; flex-direction: column; height: 100vh; }
+    .messages { flex: 1; overflow-y: auto; padding-bottom: 20px; }
+    .message { margin: 8px 0; padding: 8px 12px; border-radius: 8px; }
+    .message.user { background: rgba(64,128,255,0.08); border: 1px solid rgba(64,128,255,0.12); }
+    .message.assistant { background: rgba(120,120,120,0.06); border: 1px solid rgba(120,120,120,0.08); }
+    .result-summary { margin-bottom: 8px; }
+    .feature h3 { margin: 6px 0; }
+    .input-container { border-top: 1px solid var(--vscode-panel-border); padding: 10px 0; }
+    .input-row { display: flex; gap: 8px; }
+    .input-row input { flex: 1; padding: 6px 8px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 4px; }
+    .input-row button, .action-buttons button { padding: 6px 12px; background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; border-radius: 4px; cursor: pointer; margin-right: 6px; }
+    .input-row button:hover, .action-buttons button:hover { background: var(--vscode-button-hoverBackground); }
+    .action-buttons { margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div id="messages" class="messages"></div>
+    <div class="input-container">
+      <div class="input-row">
+        <input type="text" id="followUpInput" placeholder="Ask a follow-up question about compliance..." />
+        <button onclick="sendFollowUp()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const vscode = acquireVsCodeApi();
+    
+    window.addEventListener('message', event => {
+      const msg = event.data;
+      if (msg.type === 'appendMessage') {
+        const container = document.getElementById('messages');
+        const div = document.createElement('div');
+        div.className = 'message ' + (msg.role === 'user' ? 'user' : 'assistant');
+        div.innerHTML = msg.content;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+      }
+    });
+    
+    function sendFollowUp() {
+      const input = document.getElementById('followUpInput');
+      const query = input.value.trim();
+      if (query) {
+        vscode.postMessage({ type: 'followUpQuery', query: query });
+        input.value = '';
+      }
+    }
+    
+    function copyResult(jsonStr) {
+      vscode.postMessage({ type: 'copyResult', content: jsonStr });
+    }
+    
+    function exportJson(jsonStr) {
+      try {
+        const data = JSON.parse(jsonStr);
+        vscode.postMessage({ type: 'exportJson', data: data });
+      } catch (e) {
+        console.error('Failed to parse JSON for export', e);
+      }
+    }
+    
+    // Handle Enter key in input
+    document.getElementById('followUpInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendFollowUp();
+      }
+    });
+  </script>
+</body>
+</html>`;
+}
