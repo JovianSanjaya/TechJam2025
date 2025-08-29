@@ -2,9 +2,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as cp from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import { registerChatParticipant } from './chatParticipant';
 
-// Resolve python command: prefer configured path, then common Windows paths, then 'py', then 'python'
+// Resolve python command: prefer configured path, then environment detection, then common paths
 function resolvePythonCmd(configured: string): string {
     const tryCmd = (cmd: string): boolean => {
         try {
@@ -30,16 +31,18 @@ function resolvePythonCmd(configured: string): string {
         return configured;
     }
 
-    // Common Windows Python paths to try (in order of preference)
-    const commonPaths = [
-        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Python312\\python.exe',  // Known working path first
-        'C:\\Users\\58dya\\anaconda3\\python.exe',
-        'python',  // Try python in PATH
-        'py',  // Try py.exe (Python Launcher)
-        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Launcher\\py.exe',
-        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Python311\\python.exe',
-        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Python310\\python.exe'
-    ];
+    // Get environment-aware paths
+    const envPaths = getEnvironmentPythonPaths();
+    for (const envPath of envPaths) {
+        if (tryCmd(envPath)) {
+            console.log(`Found working Python from environment: ${envPath}`);
+            return envPath;
+        }
+    }
+
+    // Platform-specific common paths with user home detection
+    const userHome = os.homedir();
+    const commonPaths = getCommonPythonPaths(userHome);
 
     for (const pythonPath of commonPaths) {
         if (tryCmd(pythonPath)) {
@@ -51,6 +54,89 @@ function resolvePythonCmd(configured: string): string {
     // Fallback to configured value (will likely fail but gives better error message)
     console.log(`No working Python found, falling back to: ${configured || 'python'}`);
     return configured || 'python';
+}
+
+function getEnvironmentPythonPaths(): string[] {
+    const paths: string[] = [];
+    
+    // Check active conda environment
+    const condaPath = process.env.CONDA_PREFIX;
+    if (condaPath) {
+        const pythonExe = process.platform === 'win32' ? 'python.exe' : 'python';
+        paths.push(path.join(condaPath, pythonExe));
+    }
+    
+    // Check active virtual environment
+    const virtualEnv = process.env.VIRTUAL_ENV;
+    if (virtualEnv) {
+        const pythonExe = process.platform === 'win32' ? 'python.exe' : 'python';
+        const binDir = process.platform === 'win32' ? 'Scripts' : 'bin';
+        paths.push(path.join(virtualEnv, binDir, pythonExe));
+    }
+    
+    return paths;
+}
+
+function getCommonPythonPaths(userHome: string): string[] {
+    if (process.platform === 'win32') {
+        return [
+            // User-specific installations (using dynamic user home)
+            path.join(userHome, 'AppData', 'Local', 'Programs', 'Python', 'Python312', 'python.exe'),
+            path.join(userHome, 'AppData', 'Local', 'Programs', 'Python', 'Python311', 'python.exe'),
+            path.join(userHome, 'AppData', 'Local', 'Programs', 'Python', 'Python310', 'python.exe'),
+            path.join(userHome, 'anaconda3', 'python.exe'),
+            path.join(userHome, 'miniconda3', 'python.exe'),
+            // PATH commands
+            'python',
+            'py',
+            // System-wide installations
+            'C:\\Program Files\\Python312\\python.exe',
+            'C:\\Program Files\\Python311\\python.exe',
+            'C:\\Program Files\\Python310\\python.exe'
+        ];
+    } else if (process.platform === 'darwin') {
+        return [
+            '/usr/local/bin/python3',
+            '/opt/homebrew/bin/python3',
+            '/Library/Frameworks/Python.framework/Versions/3.12/bin/python3',
+            '/Library/Frameworks/Python.framework/Versions/3.11/bin/python3',
+            path.join(userHome, 'anaconda3', 'bin', 'python'),
+            path.join(userHome, 'miniconda3', 'bin', 'python'),
+            'python3',
+            'python'
+        ];
+    } else {
+        // Linux and other Unix-like systems
+        return [
+            '/usr/bin/python3',
+            '/usr/local/bin/python3',
+            path.join(userHome, 'anaconda3', 'bin', 'python'),
+            path.join(userHome, 'miniconda3', 'bin', 'python'),
+            'python3',
+            'python'
+        ];
+    }
+}
+
+function getPythonScriptPath(context: vscode.ExtensionContext): string {
+    // Try multiple possible locations for the Python script
+    const possiblePaths = [
+        path.join(context.extensionPath, 'src', 'python', 'compliance_analyzer.py'),
+        path.join(context.extensionPath, 'python', 'compliance_analyzer.py'),
+        path.join(context.extensionPath, 'scripts', 'compliance_analyzer.py')
+    ];
+    
+    for (const scriptPath of possiblePaths) {
+        if (fs.existsSync(scriptPath)) {
+            console.log(`Using Python script: ${scriptPath}`);
+            return scriptPath;
+        }
+    }
+    
+    // Fallback to the most likely location
+    const defaultPath = path.join(context.extensionPath, 'src', 'python', 'compliance_analyzer.py');
+    console.log(`Python script not found in expected locations, using default: ${defaultPath}`);
+    return defaultPath;
 }
 
 interface ComplianceResult {
@@ -239,10 +325,10 @@ async function analyzeWorkspace(outputChannel: vscode.OutputChannel, context: vs
 
 async function runComplianceAnalysis(features: any[], context: vscode.ExtensionContext): Promise<AnalysisResults | null> {
     return new Promise((resolve, reject) => {
-        const pythonScript = path.join(context.extensionPath, 'src', 'python', 'compliance_analyzer.py');
+        const pythonScript = getPythonScriptPath(context);
         const inputData = JSON.stringify({ features });
 
-    // Resolve Python command (configured -> py -> python)
+    // Resolve Python command (configured -> environment -> common paths)
     const config = vscode.workspace.getConfiguration('tiktokCompliance');
     const configured = config.get<string>('pythonPath', 'python');
     const pythonCmd = resolvePythonCmd(configured);
