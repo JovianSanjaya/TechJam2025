@@ -13,6 +13,71 @@ from code_analyzer import CodeAnalyzer
 from vector_store import get_vector_store
 from config import ComplianceConfig
 
+def call_openrouter(prompt, model=ComplianceConfig.OPENROUTER_MODEL, api_key=ComplianceConfig.OPENROUTER_API_KEY, timeout=30):
+    """
+    Call the OpenRouter API /v1/chat/completions with a simple user message.
+    Returns the assistant text on success, or raises an exception on failure.
+    """
+    if not api_key:
+        return f"Mock LLM Response: Analysis of '{prompt[:100]}...' - This is a simulated response as no API key is configured."
+
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/JovianSanjaya/TechJam2025",
+        "X-Title": "Legal Compliance RAG System"
+    }
+    
+    # Enhanced prompt for better structured responses
+    enhanced_prompt = f"""
+Analyze the following feature for legal compliance requirements:
+
+{prompt}
+
+Please provide a structured analysis including:
+1. Applicable regulations (COPPA, GDPR, CCPA, etc.)
+2. Compliance risks (high/medium/low)
+3. Required implementation steps
+4. Potential legal concerns
+
+Format your response as JSON with these fields:
+- applicable_regulations: [list of relevant laws]
+- risk_level: "high"/"medium"/"low"
+- compliance_requirements: [list of specific requirements]
+- recommendations: [list of actionable recommendations]
+"""
+    
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "user", "content": enhanced_prompt}
+        ],
+        "temperature": 0.3,
+        "max_tokens": 1000
+    }
+    
+    try:
+        print(f"🌐 Calling OpenRouter API with model: {model}")
+        response = requests.post(url, headers=headers, json=payload, timeout=timeout)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        if 'choices' in data and len(data['choices']) > 0:
+            content = data['choices'][0]['message']['content']
+            print(f"✅ OpenRouter API response received: {len(content)} characters")
+            return content
+        else:
+            return f"Error: No choices in response: {data}"
+    
+    except requests.exceptions.RequestException as e:
+        print(f"❌ OpenRouter API request failed: {e}")
+        return f"Error processing with OpenRouter: {str(e)}"
+    except Exception as e:
+        print(f"❌ OpenRouter API error: {e}")
+        return f"Error processing with OpenRouter: {str(e)}"
+
 @dataclass
 class ComplianceAnalysisResult:
     """Result of comprehensive compliance analysis"""
@@ -61,12 +126,15 @@ class EnhancedComplianceSystem:
             print(f"⚠️ Vector store initialization failed: {e}")
             print("   Using fallback search capabilities")
         
-        # Initialize multi-agent orchestrator
+        # Initialize multi-agent orchestrator with LLM client
         self.orchestrator = MultiAgentOrchestrator(
             vector_store=self.vector_store,
-            jargon_resolver=self.jargon_resolver
+            jargon_resolver=self.jargon_resolver,
+            llm_client=call_openrouter
         )
-        print("✅ Multi-agent system initialized")
+        print("✅ Multi-agent system initialized with LLM integration")
+        print(f"🔗 OpenRouter model: {ComplianceConfig.OPENROUTER_MODEL}")
+        print(f"🔑 API key configured: {'Yes' if ComplianceConfig.OPENROUTER_API_KEY else 'No (using mock responses)'}")
         
         print("🎯 System ready for compliance analysis!")
     
