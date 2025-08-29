@@ -56,117 +56,48 @@ class LegalAnalysisAgent(ComplianceAgent):
             "risk_level": "low"
         }
         
-        # Use LLM for enhanced analysis if available
-        if self.llm_client:
-            try:
-                llm_prompt = f"""
-Feature Name: {feature.get('feature_name', 'Unknown')}
-Description: {feature_description}
-
-Context from legal database:
-{relevant_regs.get('documents', [{}])[0][:500] if relevant_regs.get('documents') and relevant_regs['documents'][0] else 'No relevant documents found'}
-
-Please analyze this feature for legal compliance requirements.
-"""
-                print(f"  🧠 Using LLM for legal analysis...")
-                llm_response = self.llm_client(llm_prompt)
-                
-                # Try to parse structured response
-                try:
-                    import json
-                    if llm_response.strip().startswith('{'):
-                        llm_data = json.loads(llm_response)
-                        analysis["reasoning"] = "LLM-powered analysis: " + llm_data.get('compliance_requirements', str(llm_data))
-                        analysis["confidence"] = 0.9
-                        
-                        # Extract applicable regulations from LLM response
-                        if 'applicable_regulations' in llm_data:
-                            for reg in llm_data['applicable_regulations']:
-                                analysis["applicable_regulations"].append({
-                                    "regulation": reg,
-                                    "relevance": 0.9,
-                                    "content_excerpt": "LLM-identified regulation",
-                                    "requirements": llm_data.get('compliance_requirements', []),
-                                    "jurisdiction": "Various",
-                                    "compliance_risk": llm_data.get('risk_level', 'medium')
-                                })
-                        
-                        analysis["risk_level"] = llm_data.get('risk_level', 'medium')
-                    else:
-                        # Handle non-JSON response
-                        analysis["reasoning"] = f"LLM analysis: {llm_response[:200]}..."
-                        analysis["confidence"] = 0.8
-                        
-                        # Look for regulation mentions in text
-                        regulations = ["COPPA", "GDPR", "CCPA", "COPPA", "DSA", "DMA"]
-                        found_regs = [reg for reg in regulations if reg.lower() in llm_response.lower()]
-                        
-                        for reg in found_regs:
-                            analysis["applicable_regulations"].append({
-                                "regulation": reg,
-                                "relevance": 0.8,
-                                "content_excerpt": "Mentioned in LLM analysis",
-                                "requirements": ["See LLM analysis for details"],
-                                "jurisdiction": "Various",
-                                "compliance_risk": "medium"
-                            })
-                        
-                        if "high risk" in llm_response.lower():
-                            analysis["risk_level"] = "high"
-                        elif "low risk" in llm_response.lower():
-                            analysis["risk_level"] = "low"
-                        else:
-                            analysis["risk_level"] = "medium"
-                
-                except json.JSONDecodeError:
-                    analysis["reasoning"] = f"LLM analysis (text): {llm_response[:200]}..."
-                    analysis["confidence"] = 0.7
-                
-            except Exception as e:
-                print(f"    ⚠️ LLM analysis failed: {e}")
-                # Fall back to original logic
-                pass
+        if not relevant_regs['documents'] or not relevant_regs['documents'][0]:
+            analysis["reasoning"] = "No relevant regulations found in database"
+            analysis["confidence"] = 0.1
+            return analysis
         
-        # Fallback to original vector search analysis if no LLM or LLM failed
-        if not analysis["applicable_regulations"] and relevant_regs['documents'] and relevant_regs['documents'][0]:
-            # Analyze each regulation
-            for i, (doc, metadata) in enumerate(zip(relevant_regs['documents'][0], relevant_regs['metadatas'][0])):
-                if not doc or not metadata:
-                    continue
-                    
-                # Calculate relevance score
-                relevance_score = calculate_relevance_score(feature_description, doc, metadata)
+        # Analyze each regulation
+        for i, (doc, metadata) in enumerate(zip(relevant_regs['documents'][0], relevant_regs['metadatas'][0])):
+            if not doc or not metadata:
+                continue
                 
-                if relevance_score >= ComplianceConfig.RELEVANCE_THRESHOLD:
-                    reg_analysis = {
-                        "regulation": metadata.get('title', f'Document {i+1}'),
-                        "relevance": relevance_score,
-                        "content_excerpt": doc[:200] + "..." if len(doc) > 200 else doc,
-                        "requirements": self._extract_requirements_simple(doc),
-                        "jurisdiction": self._extract_jurisdiction(doc, metadata),
-                        "compliance_risk": self._assess_risk(doc)
-                    }
-                    
-                    analysis["applicable_regulations"].append(reg_analysis)
-                    analysis["evidence"].append(f"Regulation '{reg_analysis['regulation']}' with relevance {relevance_score:.2f}")
+            # Calculate relevance score
+            relevance_score = calculate_relevance_score(feature_description, doc, metadata)
+            
+            if relevance_score >= ComplianceConfig.RELEVANCE_THRESHOLD:
+                reg_analysis = {
+                    "regulation": metadata.get('title', f'Document {i+1}'),
+                    "relevance": relevance_score,
+                    "content_excerpt": doc[:200] + "..." if len(doc) > 200 else doc,
+                    "requirements": self._extract_requirements_simple(doc),
+                    "jurisdiction": self._extract_jurisdiction(doc, metadata),
+                    "compliance_risk": self._assess_risk(doc)
+                }
+                
+                analysis["applicable_regulations"].append(reg_analysis)
+                analysis["evidence"].append(f"Regulation '{reg_analysis['regulation']}' with relevance {relevance_score:.2f}")
         
-        # Generate reasoning if not set by LLM
-        if not analysis["reasoning"]:
-            if analysis["applicable_regulations"]:
-                reg_count = len(analysis["applicable_regulations"])
-                max_relevance = max(reg["relevance"] for reg in analysis["applicable_regulations"])
-                analysis["reasoning"] = f"Found {reg_count} applicable regulations with max relevance {max_relevance:.2f}"
-                analysis["confidence"] = min(max_relevance * 1.2, 1.0)
-                
-                # Determine overall risk level
-                risk_levels = [reg["compliance_risk"] for reg in analysis["applicable_regulations"]]
-                if "high" in risk_levels:
-                    analysis["risk_level"] = "high"
-                elif "medium" in risk_levels:
-                    analysis["risk_level"] = "medium"
-            else:
-                analysis["reasoning"] = "No regulations met relevance threshold"
-                analysis["confidence"] = 0.2
+        # Generate reasoning
+        if analysis["applicable_regulations"]:
+            reg_count = len(analysis["applicable_regulations"])
+            max_relevance = max(reg["relevance"] for reg in analysis["applicable_regulations"])
+            analysis["reasoning"] = f"Found {reg_count} applicable regulations with max relevance {max_relevance:.2f}"
+            analysis["confidence"] = min(max_relevance * 1.2, 1.0)
+            
+            # Determine overall risk level
+            risk_levels = [reg["compliance_risk"] for reg in analysis["applicable_regulations"]]
+            if "high" in risk_levels:
+                analysis["risk_level"] = "high"
+            elif "medium" in risk_levels:
+                analysis["risk_level"] = "medium"
+        else:
+            analysis["reasoning"] = "No regulations met relevance threshold"
+            analysis["confidence"] = 0.2
         
         return analysis
     

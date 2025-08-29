@@ -15,9 +15,9 @@ def load_env_file():
 load_env_file()
 
 class ComplianceConfig:
-    # API Configuration - read from environment or .env; default to empty (disabled)
-    OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-    OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "moonshotai/kimi-k2:free")  # Free model
+    # API Configuration - Replace with your actual API key
+    OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY") or "sk-or-v1-your-actual-api-key-here"
+    OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-4-maverick:free")
     
     # Processing Configuration
     RELEVANCE_THRESHOLD = 0.5
