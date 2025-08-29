@@ -1,0 +1,271 @@
+{
+  "analysis_summary": {
+    "total_features": 3,
+    "features_requiring_compliance": 3,
+    "high_risk_features": 0,
+    "human_review_needed": 2,
+    "analysis_timestamp": "2025-08-29T23:30:46.289250",
+    "system_version": "Enhanced v2.0"
+  },
+  "detailed_results": [
+    {
+      "feature_id": "feat_001",
+      "feature_name": "Age Verification Gate",
+      "analysis_type": "comprehensive",
+      "needs_compliance_logic": true,
+      "confidence": 1.0,
+      "risk_level": "medium",
+      "action_required": "IMPLEMENT_COMPLIANCE",
+      "applicable_regulations_count": 3,
+      "applicable_regulations": [
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "GDPR",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        }
+      ],
+      "implementation_notes": [
+        "Technical complexity: low"
+      ],
+      "timestamp": "2025-08-29T23:30:51.833824",
+      "code_analysis": {
+        "risk_score": 0.6,
+        "privacy_concerns_count": 0,
+        "age_verification_patterns": 0,
+        "geolocation_patterns": 0,
+        "content_moderation_patterns": 0,
+        "recommendations": []
+      },
+      "agent_analysis": {
+        "agents_used": [
+          "Intent Classifier",
+          "Legal Analyst",
+          "Technical Analyst"
+        ],
+        "agent_consensus": 0.8333333333333334,
+        "successful_agents": 3,
+        "human_review_needed": false
+      }
+    },
+    {
+      "feature_id": "feat_002",
+      "feature_name": "Geolocation Service",
+      "analysis_type": "comprehensive",
+      "needs_compliance_logic": true,
+      "confidence": 1.0,
+      "risk_level": "medium",
+      "action_required": "HUMAN_REVIEW",
+      "applicable_regulations_count": 4,
+      "applicable_regulations": [
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "GDPR",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "CCPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        }
+      ],
+      "implementation_notes": [
+        "Technical complexity: low",
+        "Security considerations: 2"
+      ],
+      "timestamp": "2025-08-29T23:30:55.509135",
+      "code_analysis": {
+        "risk_score": 0.782,
+        "privacy_concerns_count": 0,
+        "age_verification_patterns": 0,
+        "geolocation_patterns": 1,
+        "content_moderation_patterns": 0,
+        "recommendations": [
+          "Consider data localization requirements",
+          "Implement location-based content restrictions",
+          "Review security implementations",
+          "Ensure proper encryption for sensitive data"
+        ]
+      },
+      "agent_analysis": {
+        "agents_used": [
+          "Intent Classifier",
+          "Legal Analyst",
+          "Technical Analyst"
+        ],
+        "agent_consensus": 0.8666666666666667,
+        "successful_agents": 3,
+        "human_review_needed": true
+      }
+    },
+    {
+      "feature_id": "feat_003",
+      "feature_name": "Content Recommendation",
+      "analysis_type": "comprehensive",
+      "needs_compliance_logic": true,
+      "confidence": 1.0,
+      "risk_level": "medium",
+      "action_required": "HUMAN_REVIEW",
+      "applicable_regulations_count": 4,
+      "applicable_regulations": [
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "GDPR",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "CCPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        },
+        {
+          "regulation": "COPPA",
+          "relevance": 0.8,
+          "content_excerpt": "Mentioned in LLM analysis",
+          "requirements": [
+            "See LLM analysis for details"
+          ],
+          "jurisdiction": "Various",
+          "compliance_risk": "medium"
+        }
+      ],
+      "implementation_notes": [
+        "Technical complexity: medium"
+      ],
+      "timestamp": "2025-08-29T23:30:58.777148",
+      "code_analysis": {
+        "risk_score": 0.0,
+        "privacy_concerns_count": 0,
+        "age_verification_patterns": 0,
+        "geolocation_patterns": 0,
+        "content_moderation_patterns": 0,
+        "recommendations": []
+      },
+      "agent_analysis": {
+        "agents_used": [
+          "Intent Classifier",
+          "Legal Analyst",
+          "Technical Analyst"
+        ],
+        "agent_consensus": 0.8333333333333334,
+        "successful_agents": 3,
+        "human_review_needed": true
+      }
+    }
+  ],
+  "recommendations": [
+    "🔧 3 features require compliance implementation",
+    "👥 2 features need human expert review",
+    "📚 Most relevant regulations: COPPA (6 features), GDPR (3 features), CCPA (2 features)",
+    "💻 High-risk code patterns found in: Geolocation Service"
+  ],
+  "audit_trail": [
+    {
+      "feature_id": "feat_001",
+      "timestamp": "2025-08-29T23:30:51.833824",
+      "agents_used": [
+        "Intent Classifier",
+        "Legal Analyst",
+        "Technical Analyst"
+      ],
+      "confidence": 1.0,
+      "action": "IMPLEMENT_COMPLIANCE"
+    },
+    {
+      "feature_id": "feat_002",
+      "timestamp": "2025-08-29T23:30:55.509135",
+      "agents_used": [
+        "Intent Classifier",
+        "Legal Analyst",
+        "Technical Analyst"
+      ],
+      "confidence": 1.0,
+      "action": "HUMAN_REVIEW"
+    },
+    {
+      "feature_id": "feat_003",
+      "timestamp": "2025-08-29T23:30:58.777148",
+      "agents_used": [
+        "Intent Classifier",
+        "Legal Analyst",
+        "Technical Analyst"
+      ],
+      "confidence": 1.0,
+      "action": "HUMAN_REVIEW"
+    }
+  ]
+}
