@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from jargon_resolver import TikTokJargonResolver
 from agents import MultiAgentOrchestrator
-from Agents.code_analyzer_llm_clean import LLMCodeAnalyzer
+from code_analyzer_llm_clean import LLMCodeAnalyzer
 from vector_store import get_vector_store
 from config import ComplianceConfig
 
@@ -508,5 +508,6 @@ def recommend_content(user_profile):
     for format_type, file_path in export_files.items():
         print(f"  📄 {format_type.upper()}: {file_path}")
 
+# Only run main when script is executed directly, not when imported
 if __name__ == "__main__":
     asyncio.run(main())
