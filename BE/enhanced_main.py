@@ -1,5 +1,6 @@
 import asyncio
 import json
+import requests
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass

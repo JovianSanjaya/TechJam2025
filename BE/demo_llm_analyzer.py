@@ -15,7 +15,7 @@ Features:
 ✅ Free models available (deepseek/deepseek-chat)
 """
 
-from Agents.code_analyzer_llm_clean import LLMCodeAnalyzer
+from code_analyzer_llm_clean import LLMCodeAnalyzer
 import os
 
 def demo_static_analysis():
