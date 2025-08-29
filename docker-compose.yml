@@ -1,23 +1,24 @@
-version: "3.8"
+version: "3.9"
 
 services:
   backend:
-    build: ./Agents
-    container_name: backend_service
+    image: notjovian/techjam2025-backend:1.0.0
+    container_name: backend
     ports:
-      - "5001:5000"
+      - "8000:8000"
     networks:
-      - app-net
+      - techjam-net
 
   frontend:
-    build: ./FE
-    container_name: frontend_service
+    image: notjovian/techjam2025-frontend:1.0.0
+    container_name: frontend
     ports:
-      - "3000:5173"
-    networks:
-      - app-net
+      - "5173:5173"
     environment:
-      - VITE_API_URL=http://backend:5000   # frontend talks to backend using service name
+      - VITE_API_URL=http://backend:8000  # frontend can call backend inside network
+    networks:
+      - techjam-net
 
 networks:
-  app-net:
+  techjam-net:
+    driver: bridge

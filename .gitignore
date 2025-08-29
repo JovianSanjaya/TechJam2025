@@ -12,6 +12,7 @@ __pycache__/
 # Cache files
 compliance_cache.pkl
 chroma_db/
+compliance_outputs/
 
 # Output files (optional - remove if you want to track outputs)
 output.txt
@@ -20,4 +21,3 @@ summary.txt
 
 .DS_Store
 
- compliance_outputs/
