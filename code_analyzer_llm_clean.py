@@ -21,19 +21,34 @@ class CompliancePattern:
 class LLMCodeAnalyzer:
     """Enhanced code analyzer using LLM (Kimi v2) for intelligent compliance analysis"""
     
-    def __init__(self, use_llm: bool = True):
-        # Enable LLM only if requested and a non-empty API key is configured
+    def __init__(self, use_llm: bool = True, force_llm: bool = False):
+        # Load configuration from .env file
         self.api_key = ComplianceConfig.OPENROUTER_API_KEY or ""
-        # Consider any non-empty API key as valid (read from .env or env)
-        has_key = bool(self.api_key)
-        self.use_llm = bool(use_llm) and has_key
-        # Use model from configuration (OPENROUTER_MODEL) or fall back to a sensible default
-        self.model = ComplianceConfig.OPENROUTER_MODEL or "moonshotai/kimi-k2:free"
+        self.model = ComplianceConfig.OPENROUTER_MODEL or "meta-llama/llama-4-maverick:free"
+        
+        # Force LLM usage if requested (bypass key check for testing)
+        if force_llm:
+            self.use_llm = True
+            print(f"🤖 Forcing LLM usage with model: {self.model}")
+            if not self.api_key:
+                print("⚠️  Warning: No API key found but LLM forced - may fail on actual calls")
+        else:
+            # Enable LLM only if requested and a non-empty API key is configured
+            has_key = bool(self.api_key.strip())
+            self.use_llm = bool(use_llm) and has_key
+            
+        # Initialize patterns
         self.compliance_patterns = self._load_compliance_patterns()
         self.privacy_keywords = self._load_privacy_keywords()
         self.data_collection_patterns = self._load_data_collection_patterns()
 
-        if not self.use_llm:
+        # Print configuration status
+        print(f"🔧 LLM Analyzer Configuration:")
+        print(f"   API Key: {'✅ Configured' if self.api_key else '❌ Missing'}")
+        print(f"   Model: {self.model}")
+        print(f"   LLM Enabled: {'✅ Yes' if self.use_llm else '❌ No'}")
+        
+        if not self.use_llm and not force_llm:
             print("⚠️  LLM analysis disabled - using static analysis only")
     
     def analyze_code_snippet(self, code: str, context: str = "") -> Dict:
@@ -160,20 +175,20 @@ Focus on practical, actionable insights that developers can implement immediatel
         return prompt
     
     def _call_openrouter(self, prompt: str, timeout: int = 30) -> str:
-        """Call OpenRouter API with free model"""
+        """Call OpenRouter API with configured model from .env"""
         if not self.api_key:
-            raise RuntimeError("OpenRouter API key not configured")
+            raise RuntimeError("OpenRouter API key not configured - check your .env file")
         
         url = "https://openrouter.ai/api/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://github.com/your-repo",  # Optional
-            "X-Title": "TikTok Compliance Analyzer"  # Optional
+            "HTTP-Referer": "https://github.com/JovianSanjaya/TechJam2025",
+            "X-Title": "TikTok Compliance Analyzer"
         }
         
         data = {
-            "model": self.model,
+            "model": self.model,  # Use model from .env file
             "messages": [
                 {
                     "role": "system", 
@@ -186,11 +201,26 @@ Focus on practical, actionable insights that developers can implement immediatel
             "top_p": 0.9
         }
         
-        response = requests.post(url, headers=headers, json=data, timeout=timeout)
-        response.raise_for_status()
+        print(f"🌐 Calling OpenRouter API...")
+        print(f"   Model: {self.model}")
+        print(f"   Endpoint: {url}")
         
-        result = response.json()
-        return result["choices"][0]["message"]["content"]
+        try:
+            response = requests.post(url, headers=headers, json=data, timeout=timeout)
+            response.raise_for_status()
+            
+            result = response.json()
+            content = result["choices"][0]["message"]["content"]
+            print(f"✅ OpenRouter API response received: {len(content)} characters")
+            return content
+            
+        except requests.exceptions.RequestException as e:
+            print(f"❌ OpenRouter API request failed: {e}")
+            raise e
+        except KeyError as e:
+            print(f"❌ Unexpected API response format: {e}")
+            print(f"   Response: {result if 'result' in locals() else 'No response'}")
+            raise e
     
     def _parse_llm_response(self, response: str, static_analysis: Dict) -> Dict:
         """Parse LLM response and structure the analysis"""
@@ -532,7 +562,7 @@ Focus on practical, actionable insights that developers can implement immediatel
 
 # Test function to demonstrate the enhanced analyzer
 def test_llm_analyzer():
-    """Test the LLM-enhanced code analyzer"""
+    """Test the LLM-enhanced code analyzer with force LLM option"""
     print("🧪 Testing LLM-Enhanced Code Analyzer")
     print("=" * 50)
     
@@ -554,26 +584,35 @@ def get_user_location(ip_address):
     return location
 '''
     
-    # Test with both LLM and static analysis
-    analyzer = LLMCodeAnalyzer(use_llm=True)
+    # Test with forced LLM usage and .env configuration
+    print("🚀 Initializing analyzer with forced LLM usage...")
+    analyzer = LLMCodeAnalyzer(use_llm=True, force_llm=True)
+    
+    print("\n🔍 Starting analysis...")
     result = analyzer.analyze_code_snippet(
         test_code, 
         context="TikTok age verification and geolocation feature"
     )
     
-    print(f"Analysis Method: {result.get('analysis_method', 'unknown')}")
-    print(f"Risk Score: {result.get('risk_score', 0):.2f}")
-    print(f"Patterns Found: {len(result.get('compliance_patterns', []))}")
+    print(f"\n📊 Analysis Results:")
+    print(f"   Method: {result.get('analysis_method', 'unknown')}")
+    print(f"   Risk Score: {result.get('risk_score', 0):.2f}")
+    print(f"   Patterns Found: {len(result.get('compliance_patterns', []))}")
     
     if result.get('llm_insights'):
         print("\n🤖 LLM Insights:")
         insights = result['llm_insights']
-        print(f"  Assessment: {insights.get('overall_assessment', 'N/A')}")
-        print(f"  Key Risks: {', '.join(insights.get('key_risks', []))}")
+        print(f"   Assessment: {insights.get('overall_assessment', 'N/A')}")
+        print(f"   Key Risks: {', '.join(insights.get('key_risks', []))}")
     
     print(f"\n📋 Recommendations ({len(result.get('recommendations', []))}):")
     for i, rec in enumerate(result.get('recommendations', []), 1):
-        print(f"  {i}. {rec}")
+        print(f"   {i}. {rec}")
+    
+    # Print raw LLM response if available
+    if result.get('llm_raw_response'):
+        print(f"\n🔍 Raw LLM Response (first 200 chars):")
+        print(f"   {result['llm_raw_response'][:200]}...")
     
     return result
 

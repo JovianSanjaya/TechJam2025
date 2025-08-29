@@ -1,0 +1,4 @@
+feature_id,feature_name,needs_compliance_logic,confidence,risk_level,action_required,applicable_regulations_count,code_risk_score,privacy_concerns,age_verification_patterns,geolocation_patterns,content_moderation_patterns,agents_used,human_review_needed,timestamp
+feat_001,Age Verification Gate,True,1.0,medium,IMPLEMENT_COMPLIANCE,3,0.6,0,0,0,0,Intent Classifier|Legal Analyst|Technical Analyst,False,2025-08-29T23:30:51.833824
+feat_002,Geolocation Service,True,1.0,medium,HUMAN_REVIEW,4,0.782,0,0,1,0,Intent Classifier|Legal Analyst|Technical Analyst,True,2025-08-29T23:30:55.509135
+feat_003,Content Recommendation,True,1.0,medium,HUMAN_REVIEW,4,0.0,0,0,0,0,Intent Classifier|Legal Analyst|Technical Analyst,True,2025-08-29T23:30:58.777148
