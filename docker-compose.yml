@@ -33,7 +33,7 @@
 
 services:
   backend:
-    build: ./Agents
+    build: ./BE
     container_name: backend_service
     ports:
       - "5001:5000"   # host:container
