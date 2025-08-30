@@ -45,9 +45,26 @@ def analyze_features():
     Analyze features for compliance
     
     Expected JSON format:
+    Single feature:
     {
         "featureName": "Feature Name",
         "description": "Feature description"
+    }
+    
+    Batch features:
+    {
+        "items": [
+            {
+                "feature_name": "Feature Name 1",
+                "description": "Feature description 1",
+                "id": "optional_id_1"
+            },
+            {
+                "feature_name": "Feature Name 2", 
+                "description": "Feature description 2",
+                "id": "optional_id_2"
+            }
+        ]
     }
     """
     try:
@@ -61,24 +78,69 @@ def analyze_features():
         data = request.get_json()
         print(f"📥 Received data: {data}")
         
-        # Run async analysis
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        try:
-            result = loop.run_until_complete(compliance_service.analyze_feature(data))
-            print(f"📤 Analysis result: {result}")
+        # Check if it's batch processing or single feature
+        if "items" in data and isinstance(data["items"], list):
+            # Batch processing
+            items = data["items"]
+            print(f"📦 Processing {len(items)} items in batch")
             
-            # Wrap result in expected format for frontend
-            response = {
-                "status": "success",
-                "timestamp": datetime.now().isoformat(),
-                "analysis_results": [result]
-            }
+            # Run async analysis for all items
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
             
-            return jsonify(response)
-        finally:
-            loop.close()
+            try:
+                analysis_results = []
+                for i, item in enumerate(items):
+                    print(f"🔄 Processing item {i+1}/{len(items)}: {item.get('feature_name', 'Unknown')}")
+                    
+                    # Convert to expected format for service
+                    feature_data = {
+                        "featureName": item.get("feature_name", ""),
+                        "description": item.get("description", "")
+                    }
+                    
+                    result = loop.run_until_complete(compliance_service.analyze_feature(feature_data))
+                    
+                    # Add the optional ID if provided
+                    if "id" in item:
+                        result["id"] = item["id"]
+                    
+                    analysis_results.append(result)
+                    print(f"✅ Completed item {i+1}: {result.get('feature_name', 'Unknown')}")
+                
+                print(f"📤 All {len(analysis_results)} analyses completed")
+                
+                response = {
+                    "status": "success",
+                    "timestamp": datetime.now().isoformat(),
+                    "analysis_results": analysis_results,
+                    "total_processed": len(analysis_results)
+                }
+                
+                return jsonify(response)
+            finally:
+                loop.close()
+        else:
+            # Single feature processing (backward compatibility)
+            print("📋 Processing single feature")
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            try:
+                result = loop.run_until_complete(compliance_service.analyze_feature(data))
+                print(f"📤 Analysis result: {result}")
+                
+                # Wrap result in expected format for frontend
+                response = {
+                    "status": "success",
+                    "timestamp": datetime.now().isoformat(),
+                    "analysis_results": [result]
+                }
+                
+                return jsonify(response)
+            finally:
+                loop.close()
     
     except Exception as e:
         # Log the full error for debugging
