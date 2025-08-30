@@ -47,6 +47,10 @@ install-deps:
 	@cd "Extension Host" && npm install
 	@echo "Installing Frontend dependencies..."
 	@cd FE && npm install
+	@echo "Installing additional dependencies..."
+	@cd FE && npm install framer-motion papaparse
+	@echo "Installing shadcn/ui dropzone component..."
+	@cd FE && npx shadcn@latest add https://www.shadcn.io/registry/dropzone.json
 	@echo "✅ Dependencies installed!"
 
 # Build VS Code Extension
