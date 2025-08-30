@@ -75,4 +75,45 @@ Extensibility and Configuration
   Centralized ComplianceConfig for topics, regions, and parameters.  
 
 - Extensible Design  
-  Modular functions for easy integration with existing systems and support for new regions or regulations.  
+  Modular functions for easy integration with existing systems and support for new regions or regulations.
+
+  
+TechStack
+
+- Backend
+
+Flask for the backend framework
+
+ChromaDB for storing and querying legal documents
+
+SentenceTransformers for embedding generation and similarity search
+
+Requests for API calls
+
+OpenRouter API for accessing Large Language Models (LLMs)
+
+Retrieval-Augmented Generation (RAG) pipeline:
+
+Embeds statutes and compliance documents into ChromaDB
+
+Performs vector similarity search to retrieve the most relevant legal context
+
+Feeds retrieved context into the LLM to ground compliance analysis and reduce hallucinations
+
+- Frontend
+
+React for building the user interface
+
+TailwindCSS for styling and layout
+
+Zustand for state management
+
+React Hook Form for form handling and validation
+
+Recharts for data visualization
+
+Assets Used
+
+Icons from Lucide React and TailwindCSS
+
+UI components from ShadCN
