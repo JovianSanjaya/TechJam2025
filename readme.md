@@ -1,4 +1,4 @@
-# TikTok Compliance Analyzer
+# CanOrNot
 
 A comprehensive compliance analysis platform for TikTok features, consisting of a **VS Code Extension**, **Web Application**, and **Backend API** that analyzes code and features for privacy regulations, data protection, and regulatory adherence.
 
