@@ -1,0 +1,5 @@
+feature_id,feature_name,needs_compliance_logic,confidence,risk_level,action_required,analysis_type,be_service_used,rag_enhanced,rag_documents_found,applicable_regulations_count,timestamp
+be_feat_001,Enhanced Age Verification Gate,True,0.84,medium,REVIEW_REQUIRED,enhanced_be_service,True,True,0,2,2025-08-30T17:21:44.073489
+be_feat_002,Smart Geolocation Service,True,0.82,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,2,2025-08-30T17:22:01.544498
+be_feat_003,Adaptive Content Recommendation,True,0.75,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,0,2025-08-30T17:22:13.532494
+be_feat_004,Real-time Content Moderation,False,0.62,low,NO_ACTION_REQUIRED,enhanced_be_service,True,True,0,0,2025-08-30T17:22:16.901894

@@ -1,0 +1,56 @@
+
+# to run on docker hub
+
+# version: "3.9"
+
+# services:
+#   backend:
+#     image: notjovian/techjam2025-backend:1.0.0
+#     container_name: backend
+#     ports:
+#       - "8000:8000"
+#     networks:
+#       - techjam-net
+
+#   frontend:
+#     image: notjovian/techjam2025-frontend:1.0.0
+#     container_name: frontend
+#     ports:
+#       - "5173:5173"
+#     environment:
+#       - VITE_API_URL=http://backend:8000  # frontend can call backend inside network
+#     networks:
+#       - techjam-net
+
+# networks:
+#   techjam-net:
+#     driver: bridge
+
+
+
+
+# to run locally
+
+services:
+  backend:
+    build: ./BE
+    container_name: backend_service
+    ports:
+      - "${BACKEND_PORT:-8000}:5000"   # host:container (5000 is internal container port)
+    environment:
+      - FLASK_PORT=5000
+    networks:
+      - app-net
+
+  frontend:
+    build: ./FE
+    container_name: frontend_service
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"   # host:container
+    networks:
+      - app-net
+    environment:
+      - VITE_API_URL=http://localhost:${BACKEND_PORT:-8000}   # frontend talks to backend via host port
+
+networks:
+  app-net:

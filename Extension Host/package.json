@@ -1,0 +1,136 @@
+{
+  "name": "tiktok-compliance-analyzer",
+  "displayName": "TikTok Compliance Analyzer",
+  "description": "Compliance analysis for TikTok features based on legal regulations and privacy requirements",
+  "version": "0.0.1",
+  "publisher": "your-publisher-name",
+  "author": {
+    "name": "Your Name"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/TechJam2025.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/TechJam2025/issues"
+  },
+  "homepage": "https://github.com/your-username/TechJam2025#readme",
+  "keywords": [
+    "compliance",
+    "privacy",
+    "gdpr",
+    "coppa",
+    "tiktok",
+    "security",
+    "analysis",
+    "regulatory"
+  ],
+  "engines": {
+    "vscode": "^1.103.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:javascript",
+    "onLanguage:typescript"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "tiktok-compliance.analyzeFile",
+        "title": "TikTok Compliance: Analyze Current File",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "tiktok-compliance.analyzeWorkspace", 
+        "title": "TikTok Compliance: Analyze Workspace",
+        "icon": "$(folder)"
+      },
+      {
+        "command": "tiktok-compliance.showResults",
+        "title": "TikTok Compliance: Show Results",
+        "icon": "$(graph)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "tiktok-compliance.analyzeFile",
+          "group": "navigation@1",
+          "when": "editorTextFocus"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "tiktok-compliance.analyzeFile",
+          "group": "navigation@1",
+          "when": "resourceExtname =~ /\\.(py|js|ts|jsx|tsx)$/"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "tiktok-compliance.analyzeFile"
+        },
+        {
+          "command": "tiktok-compliance.analyzeWorkspace"
+        },
+        {
+          "command": "tiktok-compliance.showResults"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TikTok Compliance Analyzer",
+      "properties": {
+        "tiktokCompliance.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to Python executable"
+        },
+        "tiktokCompliance.maxFilesToAnalyze": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum number of files to analyze in workspace mode"
+        },
+        "tiktokCompliance.autoAnalyze": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically analyze files on save"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "dev": "npm-run-all -p watch:*",
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.103.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "eslint": "^9.32.0",
+    "esbuild": "^0.25.8",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.2",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}

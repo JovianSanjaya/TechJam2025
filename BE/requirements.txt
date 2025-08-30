@@ -1,0 +1,6 @@
+flask==3.1.2
+flask-cors>=4.0.0
+requests>=2.25.0
+sentence-transformers>=2.2.0
+chromadb>=0.4.0
+
