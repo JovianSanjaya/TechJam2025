@@ -1,8 +1,24 @@
+"""
+Configuration module for TikTok Compliance Analyzer.
+
+This module provides centralized configuration management for the compliance
+analysis system, including API settings, processing parameters, cache
+configuration, and regional filtering options.
+
+All configuration values can be overridden via environment variables or
+a local .env file for secure API key management.
+"""
 import os
 from pathlib import Path
 
 # Load environment variables from .env file if it exists
 def load_env_file():
+    """
+    Load environment variables from .env file if present.
+    
+    Reads key=value pairs from .env file and sets them as environment
+    variables if not already defined. Supports comments with # prefix.
+    """
     env_file = Path(__file__).parent / '.env'
     if env_file.exists():
         with open(env_file, 'r') as f:
@@ -15,6 +31,13 @@ def load_env_file():
 load_env_file()
 
 class ComplianceConfig:
+    """
+    Configuration class for TikTok compliance analysis system.
+    
+    Contains all configuration parameters including API credentials,
+    processing thresholds, cache settings, and regional filtering options.
+    Values can be overridden via environment variables for deployment.
+    """
     # API Configuration - read from environment or .env; default to empty (disabled)
     OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
     OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "moonshotai/kimi-k2:free")  # Free model

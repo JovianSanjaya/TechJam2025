@@ -1,3 +1,13 @@
+"""
+Vector store implementation for legal document retrieval.
+
+This module provides ChromaDB-based vector storage for legal documents,
+enabling semantic search and retrieval for compliance analysis. Includes
+fallback mechanisms for environments where ChromaDB is not available.
+
+The vector store supports document indexing, similarity search, and
+metadata filtering for efficient legal document retrieval.
+"""
 try:
     import chromadb
     from chromadb.utils import embedding_functions
@@ -17,7 +27,29 @@ from typing import List, Dict, Any
 from config import ComplianceConfig
 
 class LegalDocumentVectorStore:
+    """
+    ChromaDB-based vector store for legal document retrieval.
+    
+    Provides semantic search capabilities over legal documents using
+    sentence transformers for embedding generation. Supports document
+    indexing, similarity search, and metadata-based filtering.
+    
+    Attributes:
+        client: ChromaDB persistent client instance
+        embedding_function: Sentence transformer for text embeddings
+        collection: ChromaDB collection for document storage
+        collection_name: Name of the document collection
+    """
     def __init__(self, collection_name="legal_docs"):
+        """
+        Initialize the vector store with ChromaDB backend.
+        
+        Args:
+            collection_name: Name for the document collection
+            
+        Raises:
+            ImportError: If ChromaDB is not available
+        """
         if not CHROMADB_AVAILABLE:
             raise ImportError("ChromaDB is required but not installed. Run: pip install chromadb")
         
@@ -32,7 +64,15 @@ class LegalDocumentVectorStore:
         self.collection_name = collection_name
     
     def _extract_content(self, doc: Dict) -> str:
-        """Extract searchable content from document"""
+        """
+        Extract searchable content from document structure.
+        
+        Args:
+            doc: Document dictionary with title, content, and metadata
+            
+        Returns:
+            Combined searchable text content
+        """
         content_parts = []
         
         # Add title
