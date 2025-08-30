@@ -27,6 +27,8 @@ help:
 	@echo "  make install-deps - Install dependencies only"
 	@echo "  make build-docker - Build Docker images only"
 	@echo "  make build-extension - Build VS Code extension only"
+	@echo "  make install-vscode-cli - Install VS Code CLI"
+	@echo "  make dev-extension-vscode - Launch VS Code in extension dev mode"
 
 # Complete setup and run everything
 all: setup run-all
@@ -37,7 +39,7 @@ all: setup run-all
 	@echo "🔌 VS Code Extension: Check Extension Host/dist/"
 
 # Setup everything
-setup: install-deps build-extension build-docker
+setup: install-deps build-extension build-docker install-vscode-cli
 	@echo "✅ Setup complete!"
 
 # Install all dependencies
@@ -138,6 +140,23 @@ test:
 		-H "Content-Type: application/json" \
 		-d '{"featureName": "Test Feature", "description": "Test description"}' \
 		| head -20
+
+# Install VS Code CLI
+install-vscode-cli:
+	@echo "🔧 Installing VS Code CLI..."
+	@if command -v code >/dev/null 2>&1; then \
+		echo "✅ VS Code CLI already installed"; \
+	else \
+		echo "📥 Adding VS Code CLI to PATH..."; \
+		echo 'export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$$PATH"' >> ~/.bashrc; \
+		echo "✅ VS Code CLI path added to ~/.bashrc"; \
+		echo "ℹ️  Please run 'source ~/.bashrc' or restart your terminal"; \
+	fi
+
+# Launch VS Code in extension development mode
+dev-extension-vscode:
+	@echo "🔌 Launching VS Code in extension development mode..."
+	@code --extensionDevelopmentPath="$(PWD)/Extension Host" --new-window
 
 # Environment setup
 env-setup:
