@@ -25,10 +25,7 @@ function resolvePythonCmdLocal(configured: string): string {
 
     // Common Windows Python paths to try
     const commonPaths = [
-        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Python312\\python.exe',
-        'C:\\Users\\58dya\\anaconda3\\python.exe',
-        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Launcher\\py.exe',
-        'C:\\Users\\58dya\\AppData\\Local\\Programs\\Python\\Python38-32\\python.exe',
+        '/usr/bin/python3',
         'py',
         'python'
     ];
