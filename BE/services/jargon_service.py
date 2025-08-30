@@ -2,7 +2,7 @@ import re
 from typing import Dict, List
 from config import ComplianceConfig
 
-class TikTokJargonResolver:
+class JargonService:
     """Resolve TikTok-specific abbreviations and codenames"""
     
     def __init__(self):

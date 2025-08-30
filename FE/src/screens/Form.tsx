@@ -234,7 +234,17 @@ export function Form() {
           )}
 
           <div className="mt-6 text-xs text-gray-500">
-            Analysis completed at: {new Date(analysisResult.timestamp || Date.now()).toLocaleString()}
+            Analysis completed at: {(() => {
+              try {
+                const timestamp = analysisResult.timestamp;
+                if (timestamp) {
+                  return new Date(timestamp).toLocaleString();
+                }
+                return new Date().toLocaleString();
+              } catch (error) {
+                return new Date().toLocaleString();
+              }
+            })()}
           </div>
         </div>
       )}

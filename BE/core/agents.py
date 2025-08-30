@@ -2,9 +2,9 @@ from typing import Dict, List, Any, Optional
 import asyncio
 import json
 from datetime import datetime
-from jargon_resolver import TikTokJargonResolver
+from services.jargon_service import JargonService
 from config import ComplianceConfig
-from relevance import calculate_relevance_score, is_relevant_compliance, parse_compliance_requirements
+from utils.relevance import calculate_relevance_score, is_relevant_compliance, parse_compliance_requirements
 
 class ComplianceAgent:
     """Base agent class"""
@@ -223,7 +223,7 @@ Please analyze this feature for legal compliance requirements.
 
 class IntentClassificationAgent(ComplianceAgent):
     """Classifies feature intent (compliance vs business)"""
-    def __init__(self, jargon_resolver: TikTokJargonResolver):
+    def __init__(self, jargon_resolver: JargonService):
         super().__init__("Intent Classifier", "Distinguish compliance from business logic")
         self.jargon_resolver = jargon_resolver
     
@@ -513,7 +513,7 @@ class ValidationAgent(ComplianceAgent):
 
 class MultiAgentOrchestrator:
     """Orchestrates multiple agents for comprehensive analysis"""
-    def __init__(self, vector_store, jargon_resolver: TikTokJargonResolver, llm_client=None):
+    def __init__(self, vector_store, jargon_resolver: JargonService, llm_client=None):
         self.agents = [
             IntentClassificationAgent(jargon_resolver),
             LegalAnalysisAgent(vector_store, llm_client),

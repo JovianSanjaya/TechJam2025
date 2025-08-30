@@ -11,7 +11,7 @@ import json
 from typing import List, Dict, Any
 from config import ComplianceConfig
 
-class LegalDocumentVectorStore:
+class VectorService:
     def __init__(self, collection_name="legal_docs"):
         if not CHROMADB_AVAILABLE:
             raise ImportError("ChromaDB is required but not installed. Run: pip install chromadb")
@@ -202,7 +202,7 @@ def get_vector_store():
     if CHROMADB_AVAILABLE:
         try:
             print("🔍 Attempting to use ChromaDB...")
-            store = LegalDocumentVectorStore()
+            store = VectorService()
             print("✅ ChromaDB vector store initialized")
             return store
         except Exception as e:
