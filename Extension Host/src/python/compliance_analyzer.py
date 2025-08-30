@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Simplified TikTok Compliance Analyzer for VS Code Extension
-This script provides a simplified version of the compliance analysis
-that can be easily called from the VS Code extension.
+Enhanced TikTok Compliance Analyzer for VS Code Extension
+This script provides LLM-enhanced compliance analysis with RAG support
+that can be called from the VS Code extension.
 """
 
 import json
@@ -11,9 +11,21 @@ import os
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
-def analyze_code_for_compliance(code: str, feature_name: str) -> Dict:
+# Add the current directory to the path so we can import our modules
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from code_analyzer_llm_clean import LLMCodeAnalyzer
+    from vector_store import get_vector_store
+    from config import ComplianceConfig
+    LLM_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: LLM components not available: {e}", file=sys.stderr)
+    LLM_AVAILABLE = False
+
+def analyze_code_for_compliance_simple(code: str, feature_name: str) -> Dict:
     """
-    Simple compliance analysis for code snippets
+    Simple fallback compliance analysis for code snippets (when LLM is not available)
     """
     # Define compliance keywords and patterns
     privacy_keywords = [
@@ -103,7 +115,7 @@ def analyze_code_for_compliance(code: str, feature_name: str) -> Dict:
     return {
         "feature_id": f"analysis_{hash(feature_name) % 10000}",
         "feature_name": feature_name,
-        "analysis_type": "code_analysis",
+        "analysis_type": "simple_static",
         "needs_compliance_logic": needs_compliance,
         "confidence": confidence,
         "risk_level": risk_level,
@@ -119,20 +131,187 @@ def analyze_code_for_compliance(code: str, feature_name: str) -> Dict:
         "timestamp": datetime.now().isoformat()
     }
 
+def analyze_code_for_compliance_llm(code: str, feature_name: str, analyzer: LLMCodeAnalyzer) -> Dict:
+    """
+    Enhanced LLM-based compliance analysis with RAG support
+    """
+    try:
+        # Use the LLM analyzer
+        result = analyzer.analyze_code_snippet(code, context=f"Feature: {feature_name}")
+        
+        # Convert the LLM analyzer result to the expected format
+        if isinstance(result, dict):
+            # Extract meaningful data from the LLM analyzer result
+            compliance_patterns = result.get('compliance_patterns', [])
+            privacy_concerns = result.get('privacy_concerns', [])
+            code_issues = result.get('code_issues', [])
+            
+            # Use adjusted risk score if available
+            risk_score = result.get('risk_score', 50)
+            confidence_adj = result.get('confidence_adjustments', {})
+            if confidence_adj.get('adjusted_risk_score'):
+                risk_score = confidence_adj['adjusted_risk_score'] * 100  # Convert to 0-100 scale
+            
+            # Determine risk level based on findings and adjusted risk score
+            total_findings = len(compliance_patterns) + len(privacy_concerns) + len(code_issues)
+            # Determine risk level based on LLM insights and code issues
+            critical_issues = [issue for issue in code_issues if isinstance(issue, dict) and issue.get('severity') == 'critical']
+            high_issues = [issue for issue in code_issues if isinstance(issue, dict) and issue.get('severity') == 'high']
+            
+            if risk_score > 80 or len(critical_issues) > 0 or total_findings >= 5:
+                risk_level = "HIGH"
+            elif risk_score > 50 or len(high_issues) > 0 or total_findings >= 2:
+                risk_level = "MEDIUM"
+            elif risk_score > 30 or total_findings >= 1:
+                risk_level = "LOW"
+            else:
+                risk_level = "MINIMAL"
+            
+            # Extract applicable regulations
+            applicable_regulations = []
+            for pattern in compliance_patterns:
+                if isinstance(pattern, dict) and 'regulation_hints' in pattern:
+                    for reg in pattern['regulation_hints']:
+                        if reg not in [r.get('name', '') for r in applicable_regulations]:
+                            applicable_regulations.append({
+                                "name": reg,
+                                "description": f"Regulation: {reg}",
+                                "relevance": "Detected in code analysis"
+                            })
+            
+            # Extract implementation notes and code issues
+            implementation_notes = result.get('recommendations', [])
+            code_issues = result.get('code_issues', [])
+            
+            # Format code issues for the extension
+            formatted_code_issues = []
+            for issue in code_issues:
+                if isinstance(issue, dict):
+                    formatted_issue = {
+                        "line_reference": issue.get('line_reference', 'Unknown'),
+                        "problematic_code": issue.get('problematic_code', ''),
+                        "violation_type": issue.get('violation_type', 'compliance'),
+                        "severity": issue.get('severity', 'medium'),
+                        "regulation_violated": issue.get('regulation_violated', 'General'),
+                        "fix_description": issue.get('fix_description', ''),
+                        "suggested_replacement": issue.get('suggested_replacement', ''),
+                        "testing_requirements": issue.get('testing_requirements', '')
+                    }
+                    formatted_code_issues.append(formatted_issue)
+            
+            return {
+                "feature_id": f"analysis_{hash(feature_name) % 10000}",
+                "feature_name": feature_name,
+                "analysis_type": result.get('analysis_method', 'hybrid_llm_static'),
+                "needs_compliance_logic": total_findings > 0 or risk_score > 30,
+                "confidence": min(max(risk_score / 100.0, 0.1), 1.0),
+                "risk_level": risk_level,
+                "action_required": "Compliance review recommended" if total_findings > 0 else "No immediate action required",
+                "applicable_regulations": applicable_regulations,
+                "implementation_notes": implementation_notes[:5],  # Limit to 5 notes
+                "code_issues": formatted_code_issues,  # New: specific code problems
+                "llm_analysis": {
+                    "llm_insights": result.get('llm_insights', {}),
+                    "confidence_adjustments": result.get('confidence_adjustments', {}),
+                    "total_findings": total_findings,
+                    "risk_score": risk_score
+                },
+                "static_analysis": {
+                    "compliance_patterns": len(compliance_patterns),
+                    "privacy_concerns": len(privacy_concerns),
+                    "data_collection": len(result.get('data_collection', [])),
+                    "security_findings": len(result.get('security_findings', []))
+                },
+                "timestamp": datetime.now().isoformat()
+            }
+        else:
+            # Fallback formatting if result is unexpected
+            print(f"Unexpected LLM result format: {type(result)}", file=sys.stderr)
+            return analyze_code_for_compliance_simple(code, feature_name)
+    except Exception as e:
+        print(f"LLM analysis failed: {e}", file=sys.stderr)
+        # Fallback to simple analysis
+        return analyze_code_for_compliance_simple(code, feature_name)
+
 def analyze_features(features: List[Dict]) -> Dict:
     """
-    Analyze multiple features for compliance
+    Analyze multiple features for compliance using LLM+RAG when available
     """
     detailed_results = []
     features_requiring_compliance = 0
     high_risk_features = 0
     human_review_needed = 0
     
+    # Initialize LLM analyzer with RAG if available
+    analyzer = None
+    vector_store = None
+    
+    if LLM_AVAILABLE:
+        try:
+            # Initialize vector store for RAG
+            vector_store = get_vector_store()
+            if vector_store:
+                # Load legal documents if available
+                legal_docs_path = os.path.join(os.path.dirname(__file__), 'legal_documents.json')
+                if os.path.exists(legal_docs_path):
+                    with open(legal_docs_path, 'r', encoding='utf-8') as f:
+                        loaded = json.load(f)
+
+                        # support both formats: a list of documents, or {"metadata":..., "documents": [ ... ]}
+                        if isinstance(loaded, dict) and isinstance(loaded.get('documents'), list):
+                            legal_docs = loaded.get('documents', [])
+                        elif isinstance(loaded, list):
+                            legal_docs = loaded
+                        elif isinstance(loaded, dict):
+                            # single-document file
+                            legal_docs = [loaded]
+                        else:
+                            legal_docs = []
+
+                        if legal_docs:
+                            # Preferred bulk API: add_documents expects a list of document dicts
+                            try:
+                                vector_store.add_documents(legal_docs)
+                            except AttributeError:
+                                # Older/alternate API: try per-document add_document(doc_content, metadata)
+                                for doc in legal_docs:
+                                    try:
+                                        if hasattr(vector_store, 'add_document'):
+                                            vector_store.add_document(doc.get('content', '') or doc.get('sections', ''), doc.get('metadata', {}))
+                                        else:
+                                            # as a last resort try adding as a single-item bulk
+                                            vector_store.add_documents([doc])
+                                    except Exception as e:
+                                        print(f"Error adding doc to vector store: {e}", file=sys.stderr)
+                        # Report how many documents we attempted to load (vector store may have filtered empties)
+                        try:
+                            loaded_count = vector_store.get_document_count()
+                        except Exception:
+                            loaded_count = len(legal_docs) if isinstance(legal_docs, list) else 0
+                        print(f"Loaded {loaded_count} legal documents for RAG", file=sys.stderr)
+            
+            # Initialize LLM analyzer with vector store
+            analyzer = LLMCodeAnalyzer(use_llm=True, force_llm=True, vector_store=vector_store)
+            print("Using LLM+RAG analysis", file=sys.stderr)
+        except Exception as e:
+            print(f"Failed to initialize LLM analyzer: {e}", file=sys.stderr)
+            analyzer = None
+    
+    if not analyzer:
+        print("Using simple static analysis (fallback)", file=sys.stderr)
+    
     for feature in features:
-        result = analyze_code_for_compliance(
-            feature.get('code', ''),
-            feature.get('feature_name', 'Unknown Feature')
-        )
+        if analyzer:
+            result = analyze_code_for_compliance_llm(
+                feature.get('code', ''),
+                feature.get('feature_name', 'Unknown Feature'),
+                analyzer
+            )
+        else:
+            result = analyze_code_for_compliance_simple(
+                feature.get('code', ''),
+                feature.get('feature_name', 'Unknown Feature')
+            )
         
         detailed_results.append(result)
         
@@ -145,20 +324,37 @@ def analyze_features(features: List[Dict]) -> Dict:
         elif result['risk_level'] == 'MEDIUM':
             human_review_needed += 1
     
-    # Generate recommendations
+    # Generate recommendations from AI analysis
     recommendations = []
-    if high_risk_features > 0:
-        recommendations.append(f"Prioritize {high_risk_features} high-risk features for immediate review")
-    if features_requiring_compliance > 0:
-        recommendations.append("Implement compliance documentation for identified features")
-    if human_review_needed > 0:
-        recommendations.append("Schedule legal review for flagged features")
     
-    recommendations.extend([
-        "Establish regular compliance auditing process",
-        "Create developer training on privacy requirements",
-        "Implement automated compliance checking in CI/CD pipeline"
-    ])
+    # Extract AI-generated recommendations from detailed results
+    for result in detailed_results:
+        if result.get('llm_analysis', {}).get('llm_insights', {}).get('immediate_actions'):
+            for action in result['llm_analysis']['llm_insights']['immediate_actions']:
+                if action not in recommendations:
+                    recommendations.append(f"🚨 CRITICAL: {action}")
+        
+        if result.get('llm_analysis', {}).get('llm_insights', {}).get('implementation_suggestions'):
+            for suggestion in result['llm_analysis']['llm_insights']['implementation_suggestions'][:3]:
+                if suggestion not in recommendations:
+                    recommendations.append(f"💡 {suggestion}")
+        
+        # Extract enhanced recommendations from LLM
+        if result.get('implementation_notes'):
+            for note in result['implementation_notes'][:2]:  # Limit to avoid duplication
+                if isinstance(note, str) and note not in recommendations:
+                    recommendations.append(note)
+    
+    # Add generic recommendations only if no AI recommendations found
+    if len(recommendations) < 3:
+        if high_risk_features > 0:
+            recommendations.append(f"⚠️ Prioritize {high_risk_features} high-risk features for immediate review")
+        if features_requiring_compliance > 0:
+            recommendations.append("📋 Implement compliance documentation for identified features")
+        if human_review_needed > 0:
+            recommendations.append("👨‍💼 Schedule legal review for flagged features")
+    
+    analysis_type = "hybrid_llm_rag" if (analyzer and vector_store) else "llm_only" if analyzer else "static_only"
     
     return {
         "analysis_summary": {
@@ -167,7 +363,9 @@ def analyze_features(features: List[Dict]) -> Dict:
             "high_risk_features": high_risk_features,
             "human_review_needed": human_review_needed,
             "analysis_timestamp": datetime.now().isoformat(),
-            "system_version": "VS Code Extension v1.0"
+            "system_version": f"VS Code Extension v1.0 ({analysis_type})",
+            "rag_enabled": vector_store is not None,
+            "llm_enabled": analyzer is not None
         },
         "detailed_results": detailed_results,
         "recommendations": recommendations[:5],  # Limit to top 5 recommendations
@@ -176,11 +374,11 @@ def analyze_features(features: List[Dict]) -> Dict:
                 "action": "compliance_analysis",
                 "timestamp": datetime.now().isoformat(),
                 "features_analyzed": len(features),
+                "analysis_type": analysis_type,
                 "status": "completed"
             }
         ]
     }
-
 def main():
     """
     Main function to handle VS Code extension requests

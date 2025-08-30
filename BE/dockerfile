@@ -14,5 +14,5 @@ COPY . .
 # Expose container port (not host)
 EXPOSE 5000
 
-# Run the app
-CMD ["python", "enhanced_main.py"]
+# Run the API server
+CMD ["python", "app.py"]

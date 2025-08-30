@@ -1,0 +1,109 @@
+{
+  "analysis_summary": {
+    "total_features": 4,
+    "features_requiring_compliance": 0,
+    "high_risk_features": 0,
+    "human_review_needed": 4,
+    "rag_enabled": true,
+    "analysis_timestamp": "2025-08-30T17:14:49.230172",
+    "system_version": "Enhanced BE v1.0",
+    "backend_architecture": "Flask + Multi-Agent + Forced RAG"
+  },
+  "detailed_results": [
+    {
+      "feature_id": "be_feat_001",
+      "feature_name": "Enhanced Age Verification Gate",
+      "analysis_type": "error",
+      "needs_compliance_logic": false,
+      "confidence": 0.0,
+      "risk_level": "unknown",
+      "action_required": "HUMAN_REVIEW",
+      "applicable_regulations": [],
+      "implementation_notes": [
+        "BE Analysis failed: 'list' object has no attribute 'get'"
+      ],
+      "agent_results": null,
+      "llm_analysis": null,
+      "rag_analysis": null,
+      "timestamp": "2025-08-30T17:15:04.335328",
+      "be_service_used": true,
+      "rag_enhanced": false
+    },
+    {
+      "feature_id": "be_feat_002",
+      "feature_name": "Smart Geolocation Service",
+      "analysis_type": "error",
+      "needs_compliance_logic": false,
+      "confidence": 0.0,
+      "risk_level": "unknown",
+      "action_required": "HUMAN_REVIEW",
+      "applicable_regulations": [],
+      "implementation_notes": [
+        "BE Analysis failed: 'list' object has no attribute 'get'"
+      ],
+      "agent_results": null,
+      "llm_analysis": null,
+      "rag_analysis": null,
+      "timestamp": "2025-08-30T17:15:23.100186",
+      "be_service_used": true,
+      "rag_enhanced": false
+    },
+    {
+      "feature_id": "be_feat_003",
+      "feature_name": "Adaptive Content Recommendation",
+      "analysis_type": "error",
+      "needs_compliance_logic": false,
+      "confidence": 0.0,
+      "risk_level": "unknown",
+      "action_required": "HUMAN_REVIEW",
+      "applicable_regulations": [],
+      "implementation_notes": [
+        "BE Analysis failed: 'list' object has no attribute 'get'"
+      ],
+      "agent_results": null,
+      "llm_analysis": null,
+      "rag_analysis": null,
+      "timestamp": "2025-08-30T17:15:42.871751",
+      "be_service_used": true,
+      "rag_enhanced": false
+    },
+    {
+      "feature_id": "be_feat_004",
+      "feature_name": "Real-time Content Moderation",
+      "analysis_type": "error",
+      "needs_compliance_logic": false,
+      "confidence": 0.0,
+      "risk_level": "unknown",
+      "action_required": "HUMAN_REVIEW",
+      "applicable_regulations": [],
+      "implementation_notes": [
+        "BE Analysis failed: 'list' object has no attribute 'get'"
+      ],
+      "agent_results": null,
+      "llm_analysis": null,
+      "rag_analysis": null,
+      "timestamp": "2025-08-30T17:16:02.424036",
+      "be_service_used": true,
+      "rag_enhanced": false
+    }
+  ],
+  "recommendations": [
+    "🔧 BE Service Analysis: 4 features processed using Flask + Multi-Agent architecture",
+    "📚 RAG Status: Using fallback knowledge - consider adding more legal documents",
+    "🏗️ Architecture: BE services successfully orchestrated multi-agent analysis",
+    "🔄 Integration: Flask API ready for frontend consumption"
+  ],
+  "audit_trail": [],
+  "rag_performance": {
+    "documents_retrieved": 0,
+    "avg_relevance": 0.0,
+    "fallback_used": false
+  },
+  "system_metadata": {
+    "backend_type": "Flask + Multi-Agent",
+    "rag_forced": true,
+    "vector_store_type": "ChromaDB with SimpleFallback",
+    "llm_model": "meta-llama/llama-4-maverick:free",
+    "analysis_engine": "BE Services"
+  }
+}

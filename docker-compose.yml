@@ -36,7 +36,9 @@ services:
     build: ./BE
     container_name: backend_service
     ports:
-      - "5001:5000"   # host:container
+      - "${BACKEND_PORT:-8000}:5000"   # host:container (5000 is internal container port)
+    environment:
+      - FLASK_PORT=5000
     networks:
       - app-net
 
@@ -44,11 +46,11 @@ services:
     build: ./FE
     container_name: frontend_service
     ports:
-      - "3000:5173"   # host:container
+      - "${FRONTEND_PORT:-5173}:5173"   # host:container
     networks:
       - app-net
     environment:
-      - VITE_API_URL=http://backend:5000   # frontend talks to backend via service name
+      - VITE_API_URL=http://localhost:${BACKEND_PORT:-8000}   # frontend talks to backend via host port
 
 networks:
   app-net:
