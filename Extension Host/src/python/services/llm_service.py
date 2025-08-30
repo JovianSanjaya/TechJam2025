@@ -1,5 +1,9 @@
 """
-LLM Service for compliance analysis
+LLM Service for compliance analysis.
+
+This module provides an interface for Large Language Model-based compliance analysis,
+including prompt generation, API communication, and response parsing for enhanced
+code compliance assessment.
 """
 
 import json
@@ -19,19 +23,47 @@ from utils.helpers import log_error, log_info, safe_json_loads
 
 
 class LLMService:
-    """Service for LLM-based analysis"""
+    """
+    Service for LLM-based compliance analysis.
+    
+    Handles communication with OpenRouter API to perform enhanced compliance
+    analysis using Large Language Models, with support for custom prompts
+    and structured response parsing.
+    """
     
     def __init__(self, api_key: str = None, model: str = None):
+        """
+        Initialize the LLM service.
+        
+        Args:
+            api_key: OpenRouter API key (optional, uses config default)
+            model: Model identifier (optional, uses config default)
+        """
         self.api_key = api_key or APIConfig.OPENROUTER_API_KEY
         self.model = model or APIConfig.OPENROUTER_MODEL
         self.base_url = APIConfig.OPENROUTER_BASE_URL
         
     def is_available(self) -> bool:
-        """Check if LLM service is available"""
+        """
+        Check if LLM service is available.
+        
+        Returns:
+            True if API key is configured, False otherwise
+        """
         return bool(self.api_key.strip())
     
     def analyze_code(self, code: str, feature_name: str, rag_context: str = "") -> Optional[ct.LLMResponse]:
-        """Analyze code using LLM"""
+        """
+        Analyze code using LLM for compliance assessment.
+        
+        Args:
+            code: Source code to analyze
+            feature_name: Name of the feature being analyzed
+            rag_context: Additional context from RAG retrieval
+            
+        Returns:
+            LLMResponse object with analysis results, or None if analysis fails
+        """
         if not self.is_available():
             log_error("LLM service not available - missing API key")
             return None
@@ -46,7 +78,17 @@ class LLMService:
             return None
     
     def _build_analysis_prompt(self, code: str, feature_name: str, rag_context: str = "") -> str:
-        """Build enhanced prompt for LLM analysis focusing on problematic code identification"""
+        """
+        Build enhanced prompt for LLM analysis focusing on problematic code identification.
+        
+        Args:
+            code: Source code to analyze
+            feature_name: Name of the feature
+            rag_context: Additional legal context
+            
+        Returns:
+            Formatted prompt string for LLM analysis
+        """
         
         prompt = f"""
 You are an expert compliance analyst specializing in social media platforms like TikTok. Your primary task is to identify SPECIFIC problematic code snippets and provide ACTIONABLE fixes.
@@ -138,7 +180,19 @@ You are an expert compliance analyst specializing in social media platforms like
         return prompt
     
     def _call_llm(self, prompt: str) -> str:
-        """Call LLM API"""
+        """
+        Call LLM API with the provided prompt.
+        
+        Args:
+            prompt: Formatted prompt for analysis
+            
+        Returns:
+            Raw response text from the LLM
+            
+        Raises:
+            RuntimeError: If API key is not configured
+            requests.RequestException: If API call fails
+        """
         if not self.api_key:
             raise RuntimeError("OpenRouter API key not configured")
         
@@ -158,10 +212,10 @@ You are an expert compliance analyst specializing in social media platforms like
 
 Your primary task is to identify SPECIFIC problematic code and provide ACTIONABLE fixes:
 
-1. 🔍 IDENTIFY: Quote exact code snippets that violate regulations
-2. ⚠️ EXPLAIN: Specify which law is violated and why
-3. 🛠️ FIX: Provide complete replacement code, not generic advice
-4. 📋 PRIORITIZE: Order by legal risk and implementation urgency
+1. IDENTIFY: Quote exact code snippets that violate regulations
+2. EXPLAIN: Specify which law is violated and why
+3. FIX: Provide complete replacement code, not generic advice
+4. PRIORITIZE: Order by legal risk and implementation urgency
 
 Always respond in valid JSON format with detailed code analysis. Focus on practical, implementable solutions that developers can apply immediately to achieve compliance."""
                 },
@@ -172,7 +226,7 @@ Always respond in valid JSON format with detailed code analysis. Focus on practi
             "top_p": 0.85
         }
         
-        log_info("Calling OpenRouter API for enhanced analysis...")
+        log_info("Calling OpenRouter API for enhanced analysis")
         
         response = requests.post(self.base_url, headers=headers, json=data, timeout=30)
         response.raise_for_status()
@@ -183,7 +237,15 @@ Always respond in valid JSON format with detailed code analysis. Focus on practi
         return content
     
     def _parse_llm_response(self, response_text: str) -> ct.LLMResponse:
-        """Parse enhanced LLM response into structured format"""
+        """
+        Parse enhanced LLM response into structured format.
+        
+        Args:
+            response_text: Raw response text from LLM
+            
+        Returns:
+            LLMResponse object with parsed data
+        """
         try:
             # Try to extract JSON from response
             json_start = response_text.find('{')

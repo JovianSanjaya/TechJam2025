@@ -1,5 +1,8 @@
 """
-RAG (Retrieval-Augmented Generation) Service
+RAG (Retrieval-Augmented Generation) Service.
+
+This module provides retrieval capabilities for legal documents and context
+to augment compliance analysis with relevant regulatory information.
 """
 
 import json
@@ -15,15 +18,32 @@ from utils.helpers import log_error, log_info
 
 
 class RAGService:
-    """Service for RAG operations"""
+    """
+    Service for Retrieval-Augmented Generation operations.
+    
+    Handles loading and retrieval of legal documents to provide relevant
+    regulatory context for compliance analysis.
+    """
     
     def __init__(self, vector_store=None, legal_documents_path: str = None):
+        """
+        Initialize the RAG service.
+        
+        Args:
+            vector_store: Optional vector store for semantic search
+            legal_documents_path: Path to legal documents JSON file
+        """
         self.vector_store = vector_store
         self.legal_documents_path = legal_documents_path or str(Path(__file__).parent.parent / "legal_documents.json")
         self.legal_documents = self._load_legal_documents()
         
     def _load_legal_documents(self) -> List[Dict]:
-        """Load legal documents from JSON file"""
+        """
+        Load legal documents from JSON file.
+        
+        Returns:
+            List of legal document dictionaries
+        """
         try:
             with open(self.legal_documents_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -41,10 +61,10 @@ class RAGService:
                         # Treat the whole dict as a single document
                         documents = [data]
                 else:
-                    log_error(f"Unexpected JSON structure in legal documents")
+                    log_error("Unexpected JSON structure in legal documents")
                     return []
                 
-                log_info(f"📚 Loaded {len(documents)} legal documents")
+                log_info(f"Loaded {len(documents)} legal documents")
                 return documents
         except FileNotFoundError:
             log_error(f"Legal documents file not found: {self.legal_documents_path}")
@@ -54,14 +74,41 @@ class RAGService:
             return []
     
     def retrieve_relevant_context(self, query: str, max_docs: int = 5) -> str:
-        """Retrieve relevant legal context for the query"""
+        """
+        Retrieve relevant legal context for the given query.
+        
+        Args:
+            query: Search query for document retrieval
+            max_docs: Maximum number of documents to retrieve
+            
+        Returns:
+            Combined context string from relevant documents
+        """
         if self.vector_store:
             return self._retrieve_with_vector_store(query, max_docs)
         else:
             return self._retrieve_with_keyword_search(query, max_docs)
     
+    def is_available(self) -> bool:
+        """
+        Check if RAG service is available.
+        
+        Returns:
+            True if legal documents are loaded, False otherwise
+        """
+        return len(self.legal_documents) > 0
+    
     def _retrieve_with_vector_store(self, query: str, max_docs: int) -> str:
-        """Retrieve using vector store (if available)"""
+        """
+        Retrieve using vector store (if available).
+        
+        Args:
+            query: Search query
+            max_docs: Maximum documents to retrieve
+            
+        Returns:
+            Combined context from vector search results
+        """
         try:
             results = self.vector_store.similarity_search(query, k=max_docs)
             contexts = []
@@ -70,7 +117,7 @@ class RAGService:
                 contexts.append(result.page_content)
             
             combined_context = "\n\n---\n\n".join(contexts)
-            log_info(f"📊 RAG retrieved {len(results)} documents via vector search")
+            log_info(f"RAG retrieved {len(results)} documents via vector search")
             return combined_context
             
         except Exception as e:
@@ -78,7 +125,16 @@ class RAGService:
             return self._retrieve_with_keyword_search(query, max_docs)
     
     def _retrieve_with_keyword_search(self, query: str, max_docs: int) -> str:
-        """Fallback keyword-based retrieval"""
+        """
+        Fallback keyword-based retrieval.
+        
+        Args:
+            query: Search query
+            max_docs: Maximum documents to retrieve
+            
+        Returns:
+            Combined context from keyword search results
+        """
         if not self.legal_documents:
             return "No legal documents available."
         
@@ -140,7 +196,7 @@ class RAGService:
                 contexts.append(f"# {title}\n{content}")
         
         combined_context = "\n\n---\n\n".join(contexts)
-        log_info(f"📊 RAG retrieved {len(top_docs)} documents via keyword search")
+        log_info(f"RAG retrieved {len(top_docs)} documents via keyword search")
         return combined_context
     
     def is_available(self) -> bool:

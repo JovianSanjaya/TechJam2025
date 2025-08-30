@@ -1,5 +1,8 @@
 """
-Pattern-based analyzer for compliance patterns
+Pattern-based analyzer for compliance patterns.
+
+This module provides pattern detection capabilities for identifying compliance
+issues in source code using regex, AST analysis, and keyword matching.
 """
 
 import re
@@ -16,15 +19,30 @@ from utils.helpers import extract_code_snippets, normalize_pattern_name
 
 
 class PatternAnalyzer:
-    """Analyzes code for compliance patterns using rules and regex"""
+    """
+    Analyzes code for compliance patterns using rules and regex.
+    
+    Provides multiple detection methods including regex-based pattern matching,
+    AST analysis for Python code, and keyword-based detection to identify
+    potential compliance issues in source code.
+    """
     
     def __init__(self):
+        """Initialize the pattern analyzer with compliance patterns and keywords."""
         self.compliance_patterns = self._load_compliance_patterns()
         self.privacy_keywords = self._load_privacy_keywords()
         self.data_collection_patterns = self._load_data_collection_patterns()
     
     def find_patterns(self, code: str) -> List[CompliancePattern]:
-        """Find all compliance patterns in the code"""
+        """
+        Find all compliance patterns in the provided code.
+        
+        Args:
+            code: Source code to analyze
+            
+        Returns:
+            List of CompliancePattern objects representing detected patterns
+        """
         patterns = []
         
         # Find regex-based patterns
@@ -39,7 +57,15 @@ class PatternAnalyzer:
         return patterns
     
     def _find_regex_patterns(self, code: str) -> List[CompliancePattern]:
-        """Find patterns using regex matching"""
+        """
+        Find patterns using regex matching.
+        
+        Args:
+            code: Source code to analyze
+            
+        Returns:
+            List of patterns found via regex matching
+        """
         patterns = []
         
         for pattern_name, pattern_config in self.compliance_patterns.items():

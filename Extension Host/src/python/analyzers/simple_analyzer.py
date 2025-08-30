@@ -1,5 +1,8 @@
 """
-Simple fallback analyzer for when LLM is not available
+Simple fallback analyzer for compliance analysis.
+
+This module provides rule-based compliance analysis using keyword matching
+and pattern detection as a fallback when LLM services are unavailable.
 """
 
 import sys
@@ -15,14 +18,30 @@ from utils.helpers import calculate_confidence
 
 
 class SimpleAnalyzer:
-    """Simple rule-based analyzer as fallback when LLM is not available"""
+    """
+    Simple rule-based analyzer as fallback when LLM is not available.
+    
+    Uses keyword matching and pattern detection to provide basic compliance
+    analysis functionality when advanced LLM-based analysis is unavailable.
+    """
     
     def __init__(self):
+        """Initialize the analyzer with keyword dictionaries."""
         self.privacy_keywords = self._load_privacy_keywords()
         self.regulation_keywords = self._load_regulation_keywords()
     
     def analyze(self, code: str, feature_name: str, patterns: List[CompliancePattern] = None) -> ComplianceResult:
-        """Perform simple analysis based on keyword matching and patterns"""
+        """
+        Perform simple analysis based on keyword matching and patterns.
+        
+        Args:
+            code: Source code to analyze
+            feature_name: Name of the feature being analyzed
+            patterns: Optional list of pre-detected compliance patterns
+            
+        Returns:
+            ComplianceResult with basic analysis findings
+        """
         if patterns is None:
             patterns = []
         

@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-Enhanced TikTok Compliance Analyzer for VS Code Extension
-This script provides LLM-enhanced compliance analysis with RAG support
-that can be called from the VS Code extension.
+Enhanced TikTok Compliance Analyzer for VS Code Extension.
 
-Refactored to use modular service architecture following FE patterns.
+This script provides LLM-enhanced compliance analysis with RAG support
+that can be called from the VS Code extension. Uses a modular service
+architecture with fallback to legacy components for backward compatibility.
+
+Main entry point for compliance analysis supporting both new modular
+services and legacy analyzer implementations.
 """
 
 import json
@@ -38,7 +41,14 @@ except ImportError as e:
 
 def analyze_code_for_compliance_simple(code: str, feature_name: str) -> Dict:
     """
-    Simple fallback compliance analysis for code snippets (when LLM is not available)
+    Simple fallback compliance analysis for code snippets when LLM is not available.
+    
+    Args:
+        code: Source code to analyze
+        feature_name: Name of the feature being analyzed
+        
+    Returns:
+        Dictionary containing basic compliance analysis results
     """
     # Define compliance keywords and patterns
     privacy_keywords = [
