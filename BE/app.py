@@ -1,24 +1,18 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import asyncio
 import json
 from datetime import datetime
 from typing import Dict, List, Any
 import traceback
 
-from enhanced_main import EnhancedComplianceSystem
+from feature_compliance_analyzer import FeatureComplianceAnalyzer
 
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:5173", "http://localhost:3000"], supports_credentials=True)
 
-# Global system instance
-compliance_system = None
-
-async def initialize_system():
-    """Initialize the compliance system"""
-    global compliance_system
-    if compliance_system is None:
-        compliance_system = EnhancedComplianceSystem()
-        await compliance_system.initialize()
-    return compliance_system
+# Global sophisticated analyzer instance
+compliance_analyzer = FeatureComplianceAnalyzer()
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -34,21 +28,30 @@ def analyze_features():
     """
     Analyze features for compliance
     
-    Expected JSON format:
+    Expected JSON format (new):
     {
-        "features": [
-            {
-                "id": "feat_001",
-                "feature_name": "Feature Name",
-                "description": "Feature description",
-                "code": "optional code snippet"
-            }
-        ],
+        "featureName": "Feature Name",
+        "description": "Feature description", 
+        "code": "optional code snippet",
+        "featureType": "feature type"
+    }
+    
+    Or legacy format:
+    {
+        "features": [{
+            "id": "feat_001",
+            "feature_name": "Feature Name",
+            "description": "Feature description",
+            "code": "optional code snippet"
+        }],
         "include_code_analysis": true,
         "export_formats": ["json"]
     }
     """
     try:
+
+        print(f"Request: {request}")
+
         # Validate request
         if not request.is_json:
             return jsonify({
@@ -57,76 +60,19 @@ def analyze_features():
             }), 400
         
         data = request.get_json()
+
         
-        # Validate required fields
-        if 'features' not in data:
-            return jsonify({
-                "error": "Missing 'features' field in request",
-                "status": "error"
-            }), 400
+        # Use sophisticated analyzer for LLM/ML-powered analysis
+        print(f"📥 Received data: {data}")
         
-        features = data['features']
-        if not isinstance(features, list) or len(features) == 0:
-            return jsonify({
-                "error": "'features' must be a non-empty list",
-                "status": "error"
-            }), 400
-        
-        # Optional parameters
-        include_code_analysis = data.get('include_code_analysis', True)
-        export_formats = data.get('export_formats', ['json'])
-        
-        # Validate features structure
-        for i, feature in enumerate(features):
-            if not isinstance(feature, dict):
-                return jsonify({
-                    "error": f"Feature at index {i} must be an object",
-                    "status": "error"
-                }), 400
-            
-            # Ensure required fields
-            if 'feature_name' not in feature:
-                feature['feature_name'] = f'Feature_{i+1}'
-            if 'id' not in feature:
-                feature['id'] = f'feat_{i+1:03d}'
-            if 'description' not in feature:
-                feature['description'] = 'No description provided'
-        
-        # Run analysis asynchronously
+        # Run async analysis
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
         try:
-            # Initialize system if needed
-            system = loop.run_until_complete(initialize_system())
-            
-            # Run analysis
-            results = loop.run_until_complete(
-                system.analyze_feature_list(features, include_code_analysis=include_code_analysis)
-            )
-            
-            # Export results if requested
-            export_files = {}
-            if export_formats and len(export_formats) > 0:
-                export_files = loop.run_until_complete(
-                    system.export_results(results, formats=export_formats)
-                )
-            
-            # Prepare response
-            response = {
-                "status": "success",
-                "timestamp": datetime.now().isoformat(),
-                "analysis_results": results,
-                "export_files": export_files,
-                "request_summary": {
-                    "features_analyzed": len(features),
-                    "include_code_analysis": include_code_analysis,
-                    "export_formats": export_formats
-                }
-            }
-            
-            return jsonify(response)
-            
+            result = loop.run_until_complete(compliance_analyzer.analyze_json_input(data))
+            print(f"📤 Analysis result: {result}")
+            return jsonify(result)
         finally:
             loop.close()
     
@@ -231,7 +177,13 @@ def root():
     })
 
 if __name__ == '__main__':
+    import os
+    
+    # Get port from environment variable or default to 5000
+    port = int(os.environ.get('FLASK_PORT', 5000))
+    
     print("🚀 Starting TikTok Compliance Analysis API...")
+    print(f"📡 Port: {port}")
     print("📡 Available endpoints:")
     print("   GET  / - API information")
     print("   GET  /health - Health check")
@@ -239,4 +191,4 @@ if __name__ == '__main__':
     print("   GET  /analyze/sample - Sample analysis")
     print()
     
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False)

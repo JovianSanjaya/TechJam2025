@@ -1,11 +1,22 @@
 import os
 from pathlib import Path
 
-# Load environment variables from .env file if it exists
+# Load environment variables from .env files if they exist
 def load_env_file():
+    # Check for .env in BE directory first
     env_file = Path(__file__).parent / '.env'
     if env_file.exists():
         with open(env_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    os.environ.setdefault(key.strip(), value.strip())
+    
+    # Also check for .env in root directory (for API keys and other global config)
+    root_env_file = Path(__file__).parent.parent / '.env'
+    if root_env_file.exists():
+        with open(root_env_file, 'r') as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#') and '=' in line:
