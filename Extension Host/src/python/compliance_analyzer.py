@@ -3,6 +3,8 @@
 Enhanced TikTok Compliance Analyzer for VS Code Extension
 This script provides LLM-enhanced compliance analysis with RAG support
 that can be called from the VS Code extension.
+
+Refactored to use modular service architecture following FE patterns.
 """
 
 import json
@@ -14,6 +16,17 @@ from typing import Dict, List, Any, Optional
 # Add the current directory to the path so we can import our modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Try to use new modular services first
+try:
+    from services import ComplianceService
+    from analyzers import SimpleAnalyzer
+    from config import AnalysisConfig
+    MODULAR_SERVICES_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: New modular services not available: {e}", file=sys.stderr)
+    MODULAR_SERVICES_AVAILABLE = False
+
+# Fallback to legacy services
 try:
     from code_analyzer_llm_clean import LLMCodeAnalyzer
     from vector_store import get_vector_store
@@ -235,8 +248,122 @@ def analyze_code_for_compliance_llm(code: str, feature_name: str, analyzer: LLMC
 
 def analyze_features(features: List[Dict]) -> Dict:
     """
-    Analyze multiple features for compliance using LLM+RAG when available
+    Analyze multiple features for compliance using new modular services when available,
+    with fallback to legacy LLM+RAG analysis
     """
+    detailed_results = []
+    features_requiring_compliance = 0
+    high_risk_features = 0
+    human_review_needed = 0
+    
+    # Try to use new modular services first
+    if MODULAR_SERVICES_AVAILABLE:
+        try:
+            # Initialize compliance service
+            config = AnalysisConfig()
+            compliance_service = ComplianceService(config)
+            
+            for feature in features:
+                result = compliance_service.analyze_code(
+                    code=feature.get('code', ''),
+                    feature_name=feature.get('feature_name', 'Unknown Feature')
+                )
+                
+                # Convert to legacy format for backward compatibility
+                legacy_result = _convert_to_legacy_format(result)
+                detailed_results.append(legacy_result)
+                
+                if legacy_result['needs_compliance_logic']:
+                    features_requiring_compliance += 1
+                
+                if legacy_result['risk_level'] == 'HIGH':
+                    high_risk_features += 1
+                    human_review_needed += 1
+                elif legacy_result['risk_level'] == 'MEDIUM':
+                    human_review_needed += 1
+            
+            analysis_type = "modular_service"
+            print("Using new modular compliance services", file=sys.stderr)
+            
+        except Exception as e:
+            print(f"Modular services failed, falling back to legacy: {e}", file=sys.stderr)
+            return _analyze_features_legacy(features)
+    else:
+        return _analyze_features_legacy(features)
+    
+    # Generate recommendations
+    recommendations = _generate_recommendations(detailed_results, high_risk_features, 
+                                               features_requiring_compliance, human_review_needed)
+    
+    return {
+        "analysis_summary": {
+            "total_features": len(features),
+            "features_requiring_compliance": features_requiring_compliance,
+            "high_risk_features": high_risk_features,
+            "human_review_needed": human_review_needed,
+            "analysis_timestamp": datetime.now().isoformat(),
+            "system_version": f"VS Code Extension v2.0 ({analysis_type})",
+            "rag_enabled": True,  # Always enabled in modular services
+            "llm_enabled": True   # Always enabled in modular services
+        },
+        "detailed_results": detailed_results,
+        "recommendations": recommendations[:5],
+        "audit_trail": [
+            {
+                "action": "compliance_analysis",
+                "timestamp": datetime.now().isoformat(),
+                "features_analyzed": len(features),
+                "analysis_type": analysis_type,
+                "status": "completed"
+            }
+        ]
+    }
+
+def _convert_to_legacy_format(result) -> Dict:
+    """Convert new ComplianceResult format to legacy format for backward compatibility"""
+    # Convert risk level to uppercase
+    risk_level = result.risk_level.upper() if hasattr(result, 'risk_level') else 'MEDIUM'
+    
+    # Convert regulations to legacy format
+    applicable_regulations = []
+    if hasattr(result, 'applicable_regulations'):
+        for reg in result.applicable_regulations:
+            if isinstance(reg, dict):
+                applicable_regulations.append({
+                    "name": reg.get('regulation', 'Unknown'),
+                    "description": reg.get('regulation', 'Unknown'),
+                    "relevance": reg.get('content_excerpt', 'Detected in analysis')
+                })
+    
+    # Generate action required text
+    action_required = "No immediate action required"
+    if risk_level == "HIGH":
+        action_required = "Immediate compliance review required"
+    elif risk_level == "MEDIUM":
+        action_required = "Compliance assessment recommended"
+    elif risk_level == "LOW":
+        action_required = "Basic compliance check needed"
+    
+    return {
+        "feature_id": f"analysis_{hash(result.feature_name) % 10000}",
+        "feature_name": result.feature_name,
+        "analysis_type": "modular_service",
+        "needs_compliance_logic": result.needs_compliance_logic,
+        "confidence": result.confidence,
+        "risk_level": risk_level,
+        "action_required": action_required,
+        "applicable_regulations": applicable_regulations,
+        "implementation_notes": result.implementation_notes,
+        "llm_analysis": {
+            "llm_insights": result.llm_analysis.__dict__ if result.llm_analysis else {},
+            "total_findings": len(result.patterns) if hasattr(result, 'patterns') else 0,
+            "risk_score": result.confidence * 100
+        },
+        "timestamp": result.timestamp
+    }
+
+def _analyze_features_legacy(features: List[Dict]) -> Dict:
+    """Legacy analysis using original LLM+RAG approach"""
     detailed_results = []
     features_requiring_compliance = 0
     high_risk_features = 0
@@ -324,7 +451,39 @@ def analyze_features(features: List[Dict]) -> Dict:
         elif result['risk_level'] == 'MEDIUM':
             human_review_needed += 1
     
-    # Generate recommendations from AI analysis
+    # Generate recommendations
+    recommendations = _generate_recommendations(detailed_results, high_risk_features, 
+                                               features_requiring_compliance, human_review_needed)
+    
+    analysis_type = "hybrid_llm_rag" if (analyzer and vector_store) else "llm_only" if analyzer else "static_only"
+    
+    return {
+        "analysis_summary": {
+            "total_features": len(features),
+            "features_requiring_compliance": features_requiring_compliance,
+            "high_risk_features": high_risk_features,
+            "human_review_needed": human_review_needed,
+            "analysis_timestamp": datetime.now().isoformat(),
+            "system_version": f"VS Code Extension v1.0 ({analysis_type})",
+            "rag_enabled": vector_store is not None,
+            "llm_enabled": analyzer is not None
+        },
+        "detailed_results": detailed_results,
+        "recommendations": recommendations[:5],
+        "audit_trail": [
+            {
+                "action": "compliance_analysis",
+                "timestamp": datetime.now().isoformat(),
+                "features_analyzed": len(features),
+                "analysis_type": analysis_type,
+                "status": "completed"
+            }
+        ]
+    }
+
+def _generate_recommendations(detailed_results: List[Dict], high_risk_features: int, 
+                            features_requiring_compliance: int, human_review_needed: int) -> List[str]:
+    """Generate recommendations based on analysis results"""
     recommendations = []
     
     # Extract AI-generated recommendations from detailed results
@@ -354,31 +513,7 @@ def analyze_features(features: List[Dict]) -> Dict:
         if human_review_needed > 0:
             recommendations.append("👨‍💼 Schedule legal review for flagged features")
     
-    analysis_type = "hybrid_llm_rag" if (analyzer and vector_store) else "llm_only" if analyzer else "static_only"
-    
-    return {
-        "analysis_summary": {
-            "total_features": len(features),
-            "features_requiring_compliance": features_requiring_compliance,
-            "high_risk_features": high_risk_features,
-            "human_review_needed": human_review_needed,
-            "analysis_timestamp": datetime.now().isoformat(),
-            "system_version": f"VS Code Extension v1.0 ({analysis_type})",
-            "rag_enabled": vector_store is not None,
-            "llm_enabled": analyzer is not None
-        },
-        "detailed_results": detailed_results,
-        "recommendations": recommendations[:5],  # Limit to top 5 recommendations
-        "audit_trail": [
-            {
-                "action": "compliance_analysis",
-                "timestamp": datetime.now().isoformat(),
-                "features_analyzed": len(features),
-                "analysis_type": analysis_type,
-                "status": "completed"
-            }
-        ]
-    }
+    return recommendations
 def main():
     """
     Main function to handle VS Code extension requests
