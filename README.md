@@ -1,11 +1,11 @@
 Overview
 
 This project is a compliance analysis tool designed to help developers, businesses, and organizations align their digital products with legal and regulatory requirements. It provides a structured way to assess whether product features comply with frameworks such as: 
-1. EU Digital Service Act DSA
-2. California state law - Protecting Our Kids from Social Media Addiction Act
-3. Florida state law - Online Protections for Minors
-4. Utah state law - Utah Social Media Regulation Act
-5. US law on reporting child sexual abuse content to NCMEC -  Reporting requirements of providers
+1. EU Digital Service Act
+2. California state law
+3. Florida state law
+4. Utah state law
+5. US law on reporting child sexual abuse content to NCMEC
 
 Core Functionality  
 
