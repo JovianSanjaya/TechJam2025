@@ -3,10 +3,15 @@ RAG (Retrieval-Augmented Generation) Service
 """
 
 import json
+import sys
+import os
 from typing import List, Dict, Optional
 from pathlib import Path
 
-from ..utils.helpers import log_error, log_info
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.helpers import log_error, log_info
 
 
 class RAGService:
@@ -21,7 +26,24 @@ class RAGService:
         """Load legal documents from JSON file"""
         try:
             with open(self.legal_documents_path, 'r', encoding='utf-8') as f:
-                documents = json.load(f)
+                data = json.load(f)
+                
+                # Handle different JSON structures
+                if isinstance(data, list):
+                    documents = data
+                elif isinstance(data, dict):
+                    # Check if documents are nested under a key
+                    if 'documents' in data:
+                        documents = data['documents']
+                    elif 'data' in data:
+                        documents = data['data']
+                    else:
+                        # Treat the whole dict as a single document
+                        documents = [data]
+                else:
+                    log_error(f"Unexpected JSON structure in legal documents")
+                    return []
+                
                 log_info(f"📚 Loaded {len(documents)} legal documents")
                 return documents
         except FileNotFoundError:
@@ -66,11 +88,29 @@ class RAGService:
         # Score documents based on keyword matches
         scored_docs = []
         for doc in self.legal_documents:
+            if not isinstance(doc, dict):
+                continue  # Skip non-dictionary items
+                
             score = 0
-            content = (doc.get('content', '') + ' ' + doc.get('title', '')).lower()
+            # Handle different document structures
+            title = doc.get('title', '')
+            content = doc.get('content', '')
+            
+            # If content is empty, check for sections
+            if not content and 'sections' in doc:
+                sections = doc.get('sections', [])
+                content_parts = []
+                for section in sections:
+                    if isinstance(section, dict):
+                        section_content = section.get('content', '')
+                        section_title = section.get('title', '')
+                        content_parts.append(f"{section_title} {section_content}")
+                content = ' '.join(content_parts)
+            
+            combined_text = (content + ' ' + title).lower()
             
             for keyword in keywords:
-                score += content.count(keyword)
+                score += combined_text.count(keyword)
             
             if score > 0:
                 scored_docs.append((score, doc))
@@ -83,7 +123,21 @@ class RAGService:
         for _, doc in top_docs:
             title = doc.get('title', 'Untitled')
             content = doc.get('content', '')
-            contexts.append(f"{title}\n{content}")
+            
+            # If no direct content, extract from sections
+            if not content and 'sections' in doc:
+                sections = doc.get('sections', [])
+                content_parts = []
+                for section in sections:
+                    if isinstance(section, dict):
+                        section_content = section.get('content', '')
+                        section_title = section.get('title', '')
+                        if section_content:
+                            content_parts.append(f"## {section_title}\n{section_content}")
+                content = '\n\n'.join(content_parts)
+            
+            if content:
+                contexts.append(f"# {title}\n{content}")
         
         combined_context = "\n\n---\n\n".join(contexts)
         log_info(f"📊 RAG retrieved {len(top_docs)} documents via keyword search")

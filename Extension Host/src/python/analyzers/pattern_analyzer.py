@@ -4,10 +4,15 @@ Pattern-based analyzer for compliance patterns
 
 import re
 import ast
+import sys
+import os
 from typing import List, Dict
 
-from ..types.compliance_types import CompliancePattern
-from ..utils.helpers import extract_code_snippets, normalize_pattern_name
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from compliance_types.compliance_types import CompliancePattern
+from utils.helpers import extract_code_snippets, normalize_pattern_name
 
 
 class PatternAnalyzer:

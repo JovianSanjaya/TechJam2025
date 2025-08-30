@@ -2,11 +2,16 @@
 Simple fallback analyzer for when LLM is not available
 """
 
+import sys
+import os
 from datetime import datetime
 from typing import List, Dict
 
-from ..types.compliance_types import ComplianceResult, CompliancePattern
-from ..utils.helpers import calculate_confidence
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from compliance_types.compliance_types import ComplianceResult, CompliancePattern
+from utils.helpers import calculate_confidence
 
 
 class SimpleAnalyzer:

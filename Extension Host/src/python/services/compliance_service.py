@@ -2,22 +2,29 @@
 Main compliance analysis service - orchestrates all analysis components
 """
 
+import sys
+import os
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from ..types.compliance_types import ComplianceResult, CompliancePattern, AnalysisConfig
-from ..analyzers.pattern_analyzer import PatternAnalyzer
-from ..analyzers.simple_analyzer import SimpleAnalyzer
-from ..services.llm_service import LLMService
-from ..services.rag_service import RAGService
-from ..utils.helpers import log_info, log_error, calculate_confidence
+# Add parent directory to path for imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+
+import compliance_types.compliance_types as ct
+from analyzers.pattern_analyzer import PatternAnalyzer
+from analyzers.simple_analyzer import SimpleAnalyzer
+from services.llm_service import LLMService
+from services.rag_service import RAGService
+from utils.helpers import log_info, log_error, calculate_confidence
 
 
 class ComplianceService:
     """Main service that orchestrates compliance analysis"""
     
-    def __init__(self, config: AnalysisConfig = None, vector_store=None):
-        self.config = config or AnalysisConfig()
+    def __init__(self, config: ct.AnalysisConfig = None, vector_store=None):
+        self.config = config or ct.AnalysisConfig()
         
         # Initialize services
         self.llm_service = LLMService() if self.config.use_llm else None
@@ -31,40 +38,70 @@ class ComplianceService:
         log_info(f"   LLM: {'✅' if self.llm_service and self.llm_service.is_available() else '❌'}")
         log_info(f"   RAG: {'✅' if self.rag_service and self.rag_service.is_available() else '❌'}")
     
-    def analyze_code(self, code: str, feature_name: str) -> ComplianceResult:
+    def analyze_code(self, code: str, feature_name: str) -> ct.ComplianceResult:
         """Main analysis method"""
         log_info(f"🔍 Analyzing: {feature_name}")
         
         try:
             # Step 1: Pattern analysis (always run)
-            patterns = self.pattern_analyzer.find_patterns(code)
-            log_info(f"📊 Found {len(patterns)} patterns")
+            try:
+                patterns = self.pattern_analyzer.find_patterns(code)
+                log_info(f"📊 Found {len(patterns)} patterns")
+            except Exception as e:
+                log_error(f"Pattern analysis failed: {e}")
+                patterns = []
             
             # Step 2: RAG context retrieval
             rag_context = ""
-            if self.rag_service and self.rag_service.is_available():
-                query = f"{feature_name} {code[:500]}"  # Limit query length
-                rag_context = self.rag_service.retrieve_relevant_context(query)
-                log_info("📚 RAG context retrieved")
+            try:
+                if self.rag_service and self.rag_service.is_available():
+                    query = f"{feature_name} {code[:500]}"  # Limit query length
+                    rag_context = self.rag_service.retrieve_relevant_context(query)
+                    log_info("📚 RAG context retrieved")
+            except Exception as e:
+                log_error(f"RAG context retrieval failed: {e}")
+                rag_context = ""
             
             # Step 3: LLM analysis (if available)
             llm_response = None
-            if self.llm_service and self.llm_service.is_available():
-                llm_response = self.llm_service.analyze_code(code, feature_name, rag_context)
-                if llm_response:
-                    log_info("🤖 LLM analysis completed")
-                    # Merge LLM patterns with rule-based patterns
-                    llm_patterns = self._convert_llm_patterns(llm_response.enhanced_patterns)
-                    patterns.extend(llm_patterns)
+            try:
+                if self.llm_service and self.llm_service.is_available():
+                    llm_response = self.llm_service.analyze_code(code, feature_name, rag_context)
+                    if llm_response:
+                        log_info("🤖 LLM analysis completed")
+                        # Merge LLM patterns with rule-based patterns
+                        llm_patterns = self._convert_llm_patterns(llm_response.enhanced_patterns)
+                        patterns.extend(llm_patterns)
+            except Exception as e:
+                log_error(f"LLM analysis failed: {e}")
+                llm_response = None
             
             # Step 4: Generate final result
-            if llm_response and len(patterns) > 0:
-                # Use enhanced analysis when LLM is available
-                result = self._generate_enhanced_result(feature_name, patterns, llm_response, code)
-            else:
-                # Fallback to simple analysis
-                log_info("⚠️ Falling back to simple analysis")
-                result = self.simple_analyzer.analyze(code, feature_name, patterns)
+            try:
+                if llm_response and len(patterns) > 0:
+                    # Use enhanced analysis when LLM is available
+                    result = self._generate_enhanced_result(feature_name, patterns, llm_response, code)
+                else:
+                    # Fallback to simple analysis
+                    log_info("⚠️ Falling back to simple analysis")
+                    result = self.simple_analyzer.analyze(code, feature_name, patterns)
+            except Exception as e:
+                log_error(f"Result generation failed: {e}")
+                # Create a minimal fallback result
+                result = ct.ComplianceResult(
+                    feature_name=feature_name,
+                    needs_compliance_logic=False,
+                    confidence=0.2,
+                    reasoning=[f"Fallback due to analysis error: {str(e)}"],
+                    applicable_regulations=[],
+                    action_required="MANUAL_REVIEW",
+                    human_review_needed=True,
+                    risk_level="medium",
+                    implementation_notes=["Manual review recommended due to analysis error"],
+                    patterns=[],
+                    llm_analysis=None,
+                    timestamp=datetime.now().isoformat()
+                )
             
             log_info(f"✅ Analysis complete: {result.risk_level} risk, {result.confidence:.2f} confidence")
             return result
@@ -72,7 +109,7 @@ class ComplianceService:
         except Exception as e:
             log_error(f"Analysis failed for {feature_name}: {str(e)}", e)
             # Return error result
-            return ComplianceResult(
+            return ct.ComplianceResult(
                 feature_name=feature_name,
                 needs_compliance_logic=True,
                 confidence=0.1,
@@ -87,13 +124,13 @@ class ComplianceService:
                 timestamp=datetime.now().isoformat()
             )
     
-    def _convert_llm_patterns(self, llm_patterns: List[Dict]) -> List[CompliancePattern]:
+    def _convert_llm_patterns(self, llm_patterns: List[Dict]) -> List[ct.CompliancePattern]:
         """Convert LLM response patterns to CompliancePattern objects"""
         patterns = []
         
         for pattern_data in llm_patterns:
             if isinstance(pattern_data, dict):
-                pattern = CompliancePattern(
+                pattern = ct.CompliancePattern(
                     pattern_type=pattern_data.get('pattern_type', 'llm'),
                     pattern_name=pattern_data.get('pattern_name', 'unknown'),
                     confidence=pattern_data.get('confidence', 0.5),
@@ -109,8 +146,8 @@ class ComplianceService:
         
         return patterns
     
-    def _generate_enhanced_result(self, feature_name: str, patterns: List[CompliancePattern], 
-                                llm_response, code: str) -> ComplianceResult:
+    def _generate_enhanced_result(self, feature_name: str, patterns: List[ct.CompliancePattern], 
+                                llm_response, code: str) -> ct.ComplianceResult:
         """Generate enhanced result using LLM insights"""
         
         # Extract regulations from patterns and LLM response
@@ -157,7 +194,7 @@ class ComplianceService:
         else:
             action_required = "MONITOR"
         
-        return ComplianceResult(
+        return ct.ComplianceResult(
             feature_name=feature_name,
             needs_compliance_logic=len(applicable_regulations) > 0,
             confidence=confidence,
@@ -176,7 +213,7 @@ class ComplianceService:
             timestamp=datetime.now().isoformat()
         )
     
-    def _calculate_risk_level(self, patterns: List[CompliancePattern], llm_response) -> str:
+    def _calculate_risk_level(self, patterns: List[ct.CompliancePattern], llm_response) -> str:
         """Calculate risk level based on patterns and LLM analysis"""
         risk_scores = []
         
@@ -193,15 +230,34 @@ class ComplianceService:
         
         # LLM-based risk
         if llm_response:
-            insights = llm_response.compliance_insights
-            key_risks = insights.get('key_risks', [])
-            
-            if len(key_risks) >= 3:
-                risk_scores.append("high")
-            elif len(key_risks) >= 2:
-                risk_scores.append("medium")
-            else:
-                risk_scores.append("low")
+            try:
+                insights = llm_response.compliance_insights
+                # Handle case where insights might be a string or dict
+                if isinstance(insights, dict):
+                    key_risks = insights.get('key_risks', [])
+                    critical_findings = insights.get('critical_findings', [])
+                    overall_assessment = insights.get('overall_assessment', '')
+                    
+                    # Calculate risk based on LLM insights
+                    total_risks = len(key_risks) + len(critical_findings)
+                    if total_risks >= 3 or 'critical' in overall_assessment.lower():
+                        risk_scores.append("high")
+                    elif total_risks >= 2 or 'high' in overall_assessment.lower():
+                        risk_scores.append("medium")
+                    else:
+                        risk_scores.append("low")
+                else:
+                    # If insights is not a dict, check for risk keywords in string
+                    insights_str = str(insights).lower()
+                    if 'critical' in insights_str or 'high risk' in insights_str:
+                        risk_scores.append("high")
+                    elif 'medium' in insights_str or 'moderate' in insights_str:
+                        risk_scores.append("medium")
+                    else:
+                        risk_scores.append("low")
+            except Exception as e:
+                log_error(f"Error calculating LLM-based risk: {e}")
+                risk_scores.append("medium")  # Default to medium if error
         
         # Return highest risk level
         if "high" in risk_scores:

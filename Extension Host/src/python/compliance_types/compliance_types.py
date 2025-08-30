@@ -42,6 +42,9 @@ class LLMResponse:
     enhanced_recommendations: List[str]
     confidence_adjustments: Dict
     raw_response: str
+    problematic_code_analysis: List[Dict] = None
+    compliance_gaps: List[Dict] = None
+    code_quality_improvements: List[Dict] = None
 
 
 @dataclass

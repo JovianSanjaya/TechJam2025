@@ -14,7 +14,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
 from config import APIConfig
-import compliance_types.compliance_types as ct
+import types.compliance_types as ct
 from utils.helpers import log_error, log_info, safe_json_loads
 
 
