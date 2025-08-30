@@ -1,35 +1,136 @@
-# CanOrNote (Regulation Compliance Analyzer ) 
+# TikTok Compliance Analyzer
 
-A Visual Studio Code extension that analyzes code for compliance requirements for TikTok, focusing on privacy regulations, data protection, and regulatory adherence.
+A comprehensive compliance analysis platform for TikTok features, consisting of a **VS Code Extension**, **Web Application**, and **Backend API** that analyzes code and features for privacy regulations, data protection, and regulatory adherence.
 
-## Features
+## 🏗️ Architecture
 
-- **🔍 File Analysis**: Analyze individual files for compliance issues
-- **🌐 Workspace Analysis**: Scan entire workspace for regulatory concerns
-- **📊 Detailed Reporting**: Comprehensive compliance reports with risk levels
-- **⚖️ Multi-Regulation Support**: GDPR, COPPA, and privacy framework compliance
-- **🎯 Smart Detection**: Identifies privacy-related code patterns and data handling
+This project consists of three main components:
 
-## Quick Start
+- **🔌 VS Code Extension** (`Extension Host/`) - Code analysis extension for developers
+- **🌐 Frontend Web App** (`FE/`) - React-based web interface for feature analysis
+- **🔧 Backend API** (`BE/`) - Flask API with AI-powered compliance analysis
+- **🐳 Docker Support** - Containerized deployment with docker-compose
 
-1. **Install the Extension**: Install from the VS Code marketplace or compile from source
-2. **Open a Code File**: Open any Python, JavaScript, or TypeScript file
-3. **Run Analysis**: Use Command Palette (`Ctrl+Shift+P`) and run:
-   - `TikTok Compliance: Analyze Current File`
-   - `TikTok Compliance: Analyze Workspace`
-   - `TikTok Compliance: Show Results`
+## 🚀 Quick Start
 
-## Commands
+### One-Command Setup
+```bash
+make all
+```
 
-| Command | Description | Keyboard Shortcut |
-|---------|-------------|-------------------|
-| `TikTok Compliance: Analyze Current File` | Analyze the currently open file | - |
-| `TikTok Compliance: Analyze Workspace` | Analyze all code files in workspace | - |
-| `TikTok Compliance: Show Results` | Open compliance results dashboard | - |
+This will:
+- Install all dependencies (Node.js, Python, shadcn/ui components)
+- Build the VS Code extension
+- Build and start Docker containers
+- Launch frontend and backend services
 
-## Configuration
+### Individual Commands
+```bash
+make setup        # Install dependencies and build everything
+make run          # Start Docker services only
+make run-all      # Start services + build extension
+make health       # Check service status
+make stop         # Stop all services
+make clean        # Clean up everything
+```
 
-Configure the extension through VS Code settings:
+## 📱 Web Application (Frontend)
+
+**Location**: `FE/`  
+**Tech Stack**: React + TypeScript + Vite + Tailwind CSS + shadcn/ui  
+**Port**: http://localhost:5173
+
+### Features
+- **📊 Feature Analysis Dashboard** - Submit features for compliance analysis
+- **📁 CSV Batch Upload** - Analyze multiple features at once
+- **🎨 Modern UI** - Built with shadcn/ui components and Tailwind CSS
+- **📱 Responsive Design** - Works on desktop and mobile
+- **🔄 Real-time Results** - Live analysis results with risk levels
+
+### Key Components
+- **Form Interface** - Feature name and description input
+- **File Upload** - CSV batch processing with drag-and-drop
+- **Results Display** - Risk levels, compliance requirements, and recommendations
+- **Toast Notifications** - User feedback and error handling
+
+### Development
+```bash
+make dev-frontend     # Start development server
+cd FE && npm run dev  # Alternative direct command
+```
+
+## 🔧 Backend API
+
+**Location**: `BE/`  
+**Tech Stack**: Flask + Python + AI/LLM Integration  
+**Port**: http://localhost:8000
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | API information and status |
+| `/health` | GET | Health check |
+| `/analyze` | POST | Analyze single feature or batch |
+| `/analyze/sample` | GET | Run sample analysis |
+
+### Features
+- **🤖 AI-Powered Analysis** - LLM-based compliance assessment
+- **📊 Risk Assessment** - HIGH, MEDIUM, LOW, MINIMAL risk levels
+- **⚖️ Multi-Regulation Support** - GDPR, COPPA, Privacy Framework
+- **📦 Batch Processing** - Analyze multiple features simultaneously
+- **🔍 Detailed Reports** - Confidence scores, implementation notes
+
+### Analysis Input Format
+```json
+{
+  "featureName": "Age Verification Gate",
+  "description": "ASL verification system for users under 16"
+}
+```
+
+### Batch Analysis Format
+```json
+{
+  "items": [
+    {
+      "feature_name": "Feature 1",
+      "description": "Description 1",
+      "id": "optional_id_1"
+    }
+  ]
+}
+```
+
+### Development
+```bash
+make dev-backend      # Start development server
+cd BE && python3 app.py  # Alternative direct command
+```
+
+## 🔌 VS Code Extension
+
+**Location**: `Extension Host/`  
+**Tech Stack**: TypeScript + VS Code API + Python Integration
+
+### Features
+- **🔍 File Analysis** - Analyze individual files for compliance issues
+- **🌐 Workspace Analysis** - Scan entire workspace for regulatory concerns
+- **📊 Detailed Reporting** - Comprehensive compliance reports with risk levels
+- **⚖️ Multi-Regulation Support** - GDPR, COPPA, and privacy framework compliance
+- **🎯 Smart Detection** - Identifies privacy-related code patterns and data handling
+
+### Commands
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `TikTok Compliance: Analyze Current File` | Analyze the currently open file | Command Palette |
+| `TikTok Compliance: Analyze Workspace` | Analyze all code files in workspace | Command Palette |
+| `TikTok Compliance: Show Results` | Open compliance results dashboard | Command Palette |
+
+### Configuration
+
+Configure through VS Code settings:
 
 ```json
 {
@@ -40,14 +141,46 @@ Configure the extension through VS Code settings:
 ```
 
 ### Settings
+- `tiktokCompliance.pythonPath`: Path to Python executable (auto-configured from `.env`)
+- `tiktokCompliance.maxFilesToAnalyze`: Maximum files to analyze in workspace mode
+- `tiktokCompliance.autoAnalyze`: Automatically analyze files on save
 
-- `tiktokCompliance.pythonPath`: Path to Python executable (default: "python")
-- `tiktokCompliance.maxFilesToAnalyze`: Maximum files to analyze in workspace mode (default: 10)
-- `tiktokCompliance.autoAnalyze`: Automatically analyze files on save (default: false)
+### Installation
+1. Build the extension: `make build-extension`
+2. Install the `.vsix` file from `Extension Host/dist/`
+3. Or use `make dev-extension` for development mode
 
-## Analysis Results
+### Supported File Types
+- Python (`.py`)
+- JavaScript (`.js`)
+- TypeScript (`.ts`)
+- JSX (`.jsx`)
+- TSX (`.tsx`)
 
-The extension provides detailed analysis results including:
+## 🐳 Docker Deployment
+
+### Local Development
+```bash
+docker-compose up -d    # Start services
+docker-compose logs -f  # View logs
+docker-compose down     # Stop services
+```
+
+### Services
+- **Backend**: Flask API on port 8000
+- **Frontend**: React app on port 5173
+- **Network**: Internal communication between services
+
+### Environment Variables
+```bash
+BACKEND_PORT=8000
+FRONTEND_PORT=5173
+VITE_API_URL=http://localhost:8000
+```
+
+## 📊 Analysis Results
+
+The system provides detailed analysis results including:
 
 - **Risk Level**: HIGH, MEDIUM, LOW, or MINIMAL
 - **Compliance Requirements**: Whether compliance logic is needed
@@ -56,58 +189,55 @@ The extension provides detailed analysis results including:
 - **Confidence Score**: Reliability of the analysis
 
 ### Risk Levels
-
 - **🚨 HIGH**: Immediate compliance review required
 - **🔶 MEDIUM**: Compliance assessment recommended  
 - **🔹 LOW**: Basic compliance check needed
 - **✅ MINIMAL**: No immediate action required
 
-## Supported File Types
+## 🛠️ Development Workflow
 
-- Python (`.py`)
-- JavaScript (`.js`)
-- TypeScript (`.ts`)
-- JSX (`.jsx`)
-- TSX (`.tsx`)
-
-## Requirements
-
-- **Python**: Python 3.6+ must be installed and accessible
-- **VS Code**: Version 1.103.0 or higher
-
-## Installation from Source
-
-1. Clone this repository
-2. Run `npm install` to install dependencies
-3. Run `npm run compile` to build the extension
-4. Press `F5` to run the extension in a new Extension Development Host window
-
-## Development
-
-### Build Commands
-
+### Setup Development Environment
 ```bash
-npm run compile          # Compile TypeScript and bundle
-npm run watch            # Watch mode for development
-npm run package          # Create production build
-npm run test             # Run tests
+git clone <repository>
+cd TechJam2025
+make all  # Complete setup
+```
+
+### Development Commands
+```bash
+make dev-backend      # Backend development server
+make dev-frontend     # Frontend development server  
+make dev-extension    # Extension development mode
+make test            # Test API endpoints
+make health          # Check service health
 ```
 
 ### Project Structure
-
 ```
-├── src/
-│   ├── extension.ts          # Main extension entry point
-│   ├── python/
-│   │   └── compliance_analyzer.py  # Python compliance analyzer
-│   └── test/
-│       └── extension.test.ts # Extension tests
-├── .vscode/                  # VS Code configuration
-├── package.json             # Extension manifest
-└── README.md               # This file
+TechJam2025/
+├── BE/                     # Backend Flask API
+│   ├── app/
+│   │   ├── api/           # API routes and middleware
+│   │   └── main.py        # Flask application factory
+│   ├── core/              # Core analysis logic
+│   ├── services/          # Business logic services
+│   └── requirements.txt   # Python dependencies
+├── FE/                     # Frontend React App
+│   ├── src/
+│   │   ├── components/    # UI components (shadcn/ui)
+│   │   ├── screens/       # Main application screens
+│   │   └── config/        # API configuration
+│   └── package.json       # Node.js dependencies
+├── Extension Host/         # VS Code Extension
+│   ├── src/
+│   │   ├── extension.ts   # Main extension entry
+│   │   └── python/        # Python analysis scripts
+│   └── package.json       # Extension manifest
+├── docker-compose.yml      # Container orchestration
+└── Makefile               # Build and deployment automation
 ```
 
-## Privacy Detection Patterns
+## 🔍 Privacy Detection Patterns
 
 The analyzer detects compliance issues by identifying:
 
@@ -125,9 +255,9 @@ The analyzer detects compliance issues by identifying:
 - `coppa`, `under_13`, `age_verification`
 - `parental_consent`, `child_data`, `minor`
 
-## Example Analysis
+## 📝 Example Analysis
 
-For code containing:
+### Input Code
 ```python
 def collect_user_data(user_id):
     personal_data = get_user_profile(user_id)
@@ -136,115 +266,80 @@ def collect_user_data(user_id):
     return personal_data
 ```
 
-The analyzer will identify:
-- **Risk Level**: HIGH
-- **Regulations**: GDPR, COPPA, Privacy Framework
-- **Notes**: Implement age verification, ensure data encryption
-- **Action**: Immediate compliance review required
-
-## Troubleshooting
-
-### Python Not Found
-Ensure Python is installed and accessible:
-```bash
-python --version
-# or
-python3 --version
+### Analysis Output
+```json
+{
+  "risk_level": "HIGH",
+  "confidence": 0.95,
+  "applicable_regulations": [
+    {"name": "GDPR", "applies": true},
+    {"name": "COPPA", "applies": true}
+  ],
+  "implementation_notes": [
+    "Implement age verification",
+    "Ensure data encryption",
+    "Add parental consent flow"
+  ],
+  "action_required": "Immediate compliance review required"
+}
 ```
 
-Update the `tiktokCompliance.pythonPath` setting if needed.
+## 🚨 Troubleshooting
 
-### No Analysis Results
-1. Check the Output panel for error messages
-2. Verify Python dependencies are available
-3. Ensure the file contains analyzable code
+### Common Issues
 
-## Contributing
+**Services not starting**
+```bash
+make health          # Check service status
+make logs           # View error logs
+make clean && make all  # Clean rebuild
+```
+
+**Python not found (Extension)**
+- Check `BE/.env` file has `TIKTOK_PYTHON_PATH` set
+- Run `make setup` to auto-configure Python path
+
+**Frontend build errors**
+```bash
+cd FE && npm install  # Reinstall dependencies
+make install-deps     # Install all dependencies
+```
+
+**Docker issues**
+```bash
+docker-compose down -v  # Remove volumes
+docker system prune -f  # Clean Docker cache
+make clean && make all  # Full rebuild
+```
+
+## 📋 Requirements
+
+- **Node.js**: 18+ (for frontend and extension)
+- **Python**: 3.8+ (for backend and analysis)
+- **Docker**: Latest (for containerized deployment)
+- **VS Code**: 1.99.0+ (for extension)
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+4. Test with: `make test`
+5. Commit: `git commit -m 'Add amazing feature'`
+6. Push: `git push origin feature/amazing-feature`
+7. Submit a pull request
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Support
+## 🆘 Support
 
-For issues and feature requests, please create an issue in the GitHub repository.
-
----
-
-**Note**: This extension is designed for TikTok compliance analysis but can be adapted for general privacy and regulatory compliance checking.pliance-analyzer README
-
-This is the README for your extension "tiktok-compliance-analyzer". After writing up a brief description, we recommend including the following sections.
-
-## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+- **Issues**: Create an issue in the GitHub repository
+- **API Documentation**: Visit http://localhost:8000 when running
+- **Health Check**: http://localhost:8000/health
+- **Frontend**: http://localhost:5173
 
 ---
 
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+**Note**: This platform is designed for TikTok compliance analysis but can be adapted for general privacy and regulatory compliance checking across various platforms and frameworks.
