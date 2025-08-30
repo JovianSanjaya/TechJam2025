@@ -10,7 +10,7 @@ final.txt: This is a human-readable text summary of the overall analysis. It pre
 System Resilience: Fallback to "Pure RAG"
 A key design feature of our system is its resilience. This is demonstrated in the analysis of features 26 through 30.
 
-For these specific items, a simulated API token limitation was triggered. In such scenarios, where the primary Large Language Model (LLM) is unavailable, the system gracefully degrades to a "Pure RAG" (Retrieval-Augmented Generation) mode.
+Due to token limitation, the openrouter service became unavailable. In such scenarios, where the primary Large Language Model (LLM) is unavailable, the system gracefully degrades to a "Pure RAG" (Retrieval-Augmented Generation) mode.
 
 In this mode, the analysis relies solely on the information retrieved from our internal knowledge base of legal and compliance documents, without the final synthesis and reasoning step from the LLM. As a result, the system can still identify potential compliance needs and assign a baseline risk, but the confidence scores are noticeably lower (ranging from 0.41 to 0.47), and the recommended action defaults to a more cautious "MONITOR_COMPLIANCE".
 
