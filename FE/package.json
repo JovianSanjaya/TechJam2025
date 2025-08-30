@@ -20,6 +20,7 @@
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.454.0",
     "nanoid": "^5.0.7",
+    "papaparse": "^5.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.3.8",
@@ -30,6 +31,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/papaparse": "^5.3.16",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
