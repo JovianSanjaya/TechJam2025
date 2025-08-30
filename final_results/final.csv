@@ -1,0 +1,31 @@
+feature_id,feature_name,needs_compliance_logic,confidence,risk_level,action_required,analysis_type,be_service_used,rag_enhanced,rag_documents_found,applicable_regulations_count,timestamp
+001,Curfew login blocker with ASL and GH for Utah minors,True,0.81,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,5,2025-08-31T01:09:25.785928
+002,PF default toggle with NR enforcement for California teens,True,0.78,medium,REVIEW_REQUIRED,enhanced_be_service,True,True,0,5,2025-08-31T01:09:44.585714
+003,Child abuse content scanner using T5 and CDS triggers,True,0.87,medium,REVIEW_REQUIRED,enhanced_be_service,True,True,0,5,2025-08-31T01:10:02.437586
+004,Content visibility lock with NSP for EU DSA,True,0.78,medium,REVIEW_REQUIRED,enhanced_be_service,True,True,0,3,2025-08-31T01:10:23.307827
+005,Jellybean-based parental notifications for Florida regulation,True,0.78,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,4,2025-08-31T01:10:41.844897
+006,Unified retention control via DRT & CDS,True,0.82,medium,REVIEW_REQUIRED,enhanced_be_service,True,True,0,5,2025-08-31T01:10:59.670673
+007,NSP auto-flagging,True,0.85,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,5,2025-08-31T01:11:17.920026
+008,T5 tagging for sensitive reports,True,0.8,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,5,2025-08-31T01:11:36.063041
+009,Underage protection via Snowcap trigger,True,0.79,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,4,2025-08-31T01:11:52.077957
+010,Universal PF deactivation on guest mode,True,0.79,medium,REVIEW_REQUIRED,enhanced_be_service,True,True,0,4,2025-08-31T01:12:10.293742
+011,Story resharing with content expiry,True,0.82,medium,REVIEW_REQUIRED,enhanced_be_service,True,True,0,4,2025-08-31T01:12:28.078964
+012,Leaderboard system for weekly creators,True,0.81,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,4,2025-08-31T01:12:48.502763
+013,Mood-based PF enhancements,True,0.79,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,5,2025-08-31T01:13:08.811060
+014,New user rewards via NR profile suggestions,True,0.74,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,4,2025-08-31T01:13:26.125667
+015,Creator fund payout tracking in CDS,True,0.89,medium,REVIEW_REQUIRED,enhanced_be_service,True,True,0,5,2025-08-31T01:13:42.853106
+016,Trial run of video replies in EU,True,0.79,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,4,2025-08-31T01:14:00.362969
+017,Canada-first PF variant test,True,0.85,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,5,2025-08-31T01:14:15.223496
+018,Chat UI overhaul,True,0.78,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,4,2025-08-31T01:14:32.185973
+019,Regional trial of autoplay behavior,True,0.84,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,4,2025-08-31T01:14:50.448905
+020,South Korea dark theme A/B experiment,True,0.88,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,4,2025-08-31T01:15:10.552945
+021,Age-specific notification controls with ASL,True,0.74,medium,REVIEW_REQUIRED,enhanced_be_service,True,True,0,4,2025-08-31T01:15:28.247108
+022,Chat content restrictions via LCP,True,0.85,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,5,2025-08-31T01:15:45.079144
+023,Video upload limits for new users,True,0.87,medium,REVIEW_REQUIRED,enhanced_be_service,True,True,0,4,2025-08-31T01:16:02.899729
+024,Flag escalation flow for sensitive comments,True,0.78,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,5,2025-08-31T01:16:22.594072
+025,User behavior scoring for policy gating,True,0.8,high,IMPLEMENT_COMPLIANCE,enhanced_be_service,True,True,0,5,2025-08-31T01:16:39.804860
+026,Minor-safe chat expansion via Jellybean,True,0.47,low,MONITOR_COMPLIANCE,enhanced_be_service,True,True,0,1,2025-08-31T01:16:42.864003
+027,Friend suggestions with underage safeguards,True,0.41,low,MONITOR_COMPLIANCE,enhanced_be_service,True,True,0,1,2025-08-31T01:16:45.589892
+028,Reaction GIFs with embedded filtering,False,0.42,low,NO_ACTION_REQUIRED,enhanced_be_service,True,True,0,0,2025-08-31T01:16:47.730573
+029,Longform posts with age-based moderation,True,0.44,low,MONITOR_COMPLIANCE,enhanced_be_service,True,True,0,1,2025-08-31T01:16:50.089988
+030,Custom avatar system with identity checks,False,0.44,low,NO_ACTION_REQUIRED,enhanced_be_service,True,True,0,0,2025-08-31T01:16:52.847721
