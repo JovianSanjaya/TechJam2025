@@ -1,6 +1,6 @@
-# tiktok# TikTok Compliance Analyzer
+# CanOrNote (Regulation Compliance Analyzer ) 
 
-A Visual Studio Code extension that analyzes code for TikTok compliance requirements, focusing on privacy regulations, data protection, and regulatory adherence.
+A Visual Studio Code extension that analyzes code for compliance requirements for TikTok, focusing on privacy regulations, data protection, and regulatory adherence.
 
 ## Features
 
