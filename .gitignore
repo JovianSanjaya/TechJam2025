@@ -20,3 +20,9 @@ summary.txt
 
 .DS_Store
 
+Agents/
+BE/compliance_outputs/
+FE/components.json
+FE/src/components/ui/shadcn-io/
+compliance_outputs/
+
