@@ -23,7 +23,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { buildApiUrl, API_CONFIG } from "@/config/api"
 import { Loader2, ShieldAlert, CheckCircle2, Info, UploadCloud, FileText, Trash2, RefreshCw, Clipboard, Download, ChevronDown } from "lucide-react"
 import { motion, useScroll, useTransform, useInView } from "framer-motion"
-import Papa from "papaparse"
+import Papa from "papaparse";
 
 // -------------------- schema & types --------------------
 const MAX_FILES = 5
@@ -520,365 +520,343 @@ function FormNotion() {
                       viewport={{ once: true }}
                       className="space-y-6 p-6 bg-blue-50/30 rounded-xl border border-blue-100/50"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        </div>
-                        <h3 className="font-semibold text-gray-900">Manual Input</h3>
-                      </div>
-                      
-                      <FormField
-                        control={form.control}
-                        name="featureName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">Feature name</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="e.g., Curfew login blocker" 
-                                className="border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm h-11" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+            <FormRoot {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="p-8 space-y-8">
+                
+                {/* Input method selection */}
+                <div className="space-y-3">
+                  <h2 className="text-xl font-semibold text-gray-900">Choose input method</h2>
+                  <p className="text-gray-600">Use either manual input or CSV upload to analyze your features</p>
+                </div>
 
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">Description</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Describe the feature, who it affects, data flows, age-gating, regional behavior..."
-                                className="min-h-[120px] border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white resize-none shadow-sm"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormDescription className="text-sm text-gray-500">
-                              If you use these fields, leave the CSV upload empty.
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </motion.div>
+                {/* Manual input section */}
+                <div className="space-y-6 p-6 bg-blue-50/30 rounded-xl border border-blue-100/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                    <h3 className="font-semibold text-gray-900">Manual Input</h3>
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="featureName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">Feature name</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="e.g., Curfew login blocker" 
+                            className="border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm h-11" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    {/* Divider */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      transition={{ duration: 0.6, delay: 0.3 }}
-                      viewport={{ once: true }}
-                      className="flex items-center gap-4"
-                    >
-                      <div className="flex-1 h-px bg-gray-200"></div>
-                      <span className="text-sm text-gray-500 font-medium px-3 py-1 bg-gray-100 rounded-full">OR</span>
-                      <div className="flex-1 h-px bg-gray-200"></div>
-                    </motion.div>
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe the feature, who it affects, data flows, age-gating, regional behavior..."
+                            className="min-h-[120px] border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white resize-none shadow-sm"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription className="text-sm text-gray-500">
+                          If you use these fields, leave the CSV upload empty.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                    {/* CSV upload section */}
-                    <motion.div
-                      initial={{ opacity: 0, x: 50 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.6, delay: 0.4 }}
-                      viewport={{ once: true }}
-                      className="space-y-6 p-6 bg-orange-50/30 rounded-xl border border-orange-100/50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        </div>
-                        <h3 className="font-semibold text-gray-900">CSV Upload</h3>
-                      </div>
+                {/* Divider */}
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 h-px bg-gray-200"></div>
+                  <span className="text-sm text-gray-500 font-medium px-3 py-1 bg-gray-100 rounded-full">OR</span>
+                  <div className="flex-1 h-px bg-gray-200"></div>
+                </div>
 
-                      <FormField
-                        control={form.control}
-                        name="attachments"
-                        render={() => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">
-                              Upload CSV files
-                              <span className="text-gray-400 font-normal ml-2">(optional)</span>
-                            </FormLabel>
-                            <FormDescription className="text-sm text-gray-500 mb-4">
-                              Flexible headers accepted (e.g., feature name, desc). Max {MAX_FILES} files • ≤ {MAX_MB}MB each • Total {totalSizeMB} MB
-                            </FormDescription>
-                            <FormControl>
-                              <div>
-                                <Dropzone
-                                  onDrop={(accepted: File[], fileRejections) => {
-                                    console.log("Files selected:", accepted);
-                                    console.log("File rejections:", fileRejections);
-                                    
-                                    if (fileRejections.length > 0) {
-                                      fileRejections.forEach((rejection) => {
-                                        console.error("File rejected:", rejection.file.name, rejection.errors);
-                                        toast({
-                                          title: "File rejected",
-                                          description: `${rejection.file.name}: ${rejection.errors.map(e => e.message).join(", ")}`,
-                                          variant: "destructive",
-                                        });
-                                      });
-                                    }
-                                    
-                                    if (accepted.length > 0) {
-                                      form.setValue("attachments", accepted, { shouldValidate: true });
-                                      toast({
-                                        title: "Files uploaded",
-                                        description: `${accepted.length} file(s) selected successfully`,
-                                      });
-                                    }
-                                  }}
-                                  onError={(error) => {
-                                    console.error("Dropzone error:", error);
+                {/* CSV upload section */}
+                <div className="space-y-6 p-6 bg-orange-50/30 rounded-xl border border-orange-100/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                    <h3 className="font-semibold text-gray-900">CSV Upload</h3>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="attachments"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Upload CSV files
+                          <span className="text-gray-400 font-normal ml-2">(optional)</span>
+                        </FormLabel>
+                        <FormDescription className="text-sm text-gray-500 mb-4">
+                          Flexible headers accepted (e.g., feature name, desc). Max {MAX_FILES} files • ≤ {MAX_MB}MB each • Total {totalSizeMB} MB
+                        </FormDescription>
+                        <FormControl>
+                          <div>
+                            <Dropzone
+                              onDrop={(accepted: File[], fileRejections) => {
+                                console.log("Files selected:", accepted);
+                                console.log("File rejections:", fileRejections);
+                                
+                                if (fileRejections.length > 0) {
+                                  fileRejections.forEach((rejection) => {
+                                    console.error("File rejected:", rejection.file.name, rejection.errors);
                                     toast({
-                                      title: "Upload error",
-                                      description: error.message,
+                                      title: "File rejected",
+                                      description: `${rejection.file.name}: ${rejection.errors.map(e => e.message).join(", ")}`,
                                       variant: "destructive",
                                     });
-                                  }}
-                                  src={attachments}
-                                  maxFiles={MAX_FILES}
-                                  maxSize={MAX_MB * 1024 * 1024}
-                                  accept={{ "text/csv": [".csv"], "application/vnd.ms-excel": [".csv"] }}
-                                  className="border-2 border-dashed border-gray-300 hover:border-gray-400 bg-white rounded-xl p-8 transition-colors group"
-                                >
-                                  <DropzoneEmptyState />
-                                  <DropzoneContent />
-                                </Dropzone>
+                                  });
+                                }
+                                
+                                if (accepted.length > 0) {
+                                  form.setValue("attachments", accepted, { shouldValidate: true });
+                                  toast({
+                                    title: "Files uploaded",
+                                    description: `${accepted.length} file(s) selected successfully`,
+                                  });
+                                }
+                              }}
+                              onError={(error) => {
+                                console.error("Dropzone error:", error);
+                                toast({
+                                  title: "Upload error",
+                                  description: error.message,
+                                  variant: "destructive",
+                                });
+                              }}
+                              src={attachments}
+                              maxFiles={MAX_FILES}
+                              maxSize={MAX_MB * 1024 * 1024}
+                              accept={{ "text/csv": [".csv"], "application/vnd.ms-excel": [".csv"] }}
+                              className="border-2 border-dashed border-gray-300 hover:border-gray-400 bg-white rounded-xl p-8 transition-colors group"
+                            >
+                              <DropzoneEmptyState />
+                              <DropzoneContent />
+                            </Dropzone>
 
-                                {!!attachments.length && (
-                                  <div className="mt-4 space-y-3">
-                                    {attachments.map((f, i) => (
-                                      <div key={i} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                                        <div className="flex items-center gap-3">
-                                          <div className="p-2 bg-gray-50 rounded-lg">
-                                            <FileText className="h-4 w-4 text-gray-600" />
-                                          </div>
-                                          <div>
-                                            <span className="text-sm font-medium text-gray-900 block">{f.name}</span>
-                                            <span className="text-xs text-gray-500">{formatMB(f.size)} MB</span>
-                                          </div>
-                                        </div>
-                                        <Button 
-                                          variant="ghost" 
-                                          size="sm" 
-                                          type="button" 
-                                          onClick={() => handleRemoveFile(i)}
-                                          className="text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
+                            {!!attachments.length && (
+                              <div className="mt-4 space-y-3">
+                                {attachments.map((f, i) => (
+                                  <div key={i} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="flex items-center gap-3">
+                                      <div className="p-2 bg-gray-50 rounded-lg">
+                                        <FileText className="h-4 w-4 text-gray-600" />
                                       </div>
-                                    ))}
+                                      <div>
+                                        <span className="text-sm font-medium text-gray-900 block">{f.name}</span>
+                                        <span className="text-xs text-gray-500">{formatMB(f.size)} MB</span>
+                                      </div>
+                                    </div>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      type="button" 
+                                      onClick={() => handleRemoveFile(i)}
+                                      className="text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
                                   </div>
-                                )}
+                                ))}
                               </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </motion.div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                    {/* Action buttons */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: 0.5 }}
-                      viewport={{ once: true }}
-                      className="flex items-center justify-between pt-6 border-t border-gray-100"
+                {/* Action buttons */}
+                <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleClear} 
+                      disabled={isLoading}
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg h-10"
                     >
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={handleClear} 
-                          disabled={isLoading}
-                          className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg h-10"
-                        >
-                          <RefreshCw className={cn("mr-2 h-4 w-4")} />
-                          Reset
-                        </Button>
-                        <Button 
-                          type="submit" 
-                          disabled={isLoading}
-                          className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm rounded-lg h-10"
-                        >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Analyzing…
-                            </>
-                          ) : (
-                            <>
-                              <ShieldAlert className="mr-2 h-4 w-4" />
-                              Analyze compliance
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </motion.div>
-                  </form>
-                </FormRoot>
-              </motion.div>
-
-              {/* Results - Notion style */}
-              {analysisResults.length > 0 && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="mt-12 space-y-6"
-                >
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    viewport={{ once: true }}
-                    className="mb-8 flex items-center justify-between"
-                  >
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-2">Analysis Results</h2>
-                      <p className="text-gray-600">Detailed compliance analysis for your features</p>
-                    </div>
-                    <Button
-                      onClick={() => downloadCsv(analysisResults)}
-                      variant="outline"
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download All as CSV
+                      <RefreshCw className={cn("mr-2 h-4 w-4")} />
+                      Reset
                     </Button>
-                  </motion.div>
-
-                  {analysisResults.map((analysisResult, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ duration: 0.6, delay: idx * 0.1 }}
-                      viewport={{ once: true }}
-                      className="bg-white border border-gray-200/70 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+                    <Button 
+                      type="submit" 
+                      disabled={isLoading}
+                      className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm rounded-lg h-10"
                     >
-                      <div className="p-8">
-                        <div className="flex items-start justify-between mb-6">
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                              Analysis #{idx + 1}
-                              {analysisResult.id && <span className="text-gray-500 font-normal ml-2">• ID: {analysisResult.id}</span>}
-                            </h3>
-                            <p className="text-gray-600">{analysisResult.feature_name || "—"}</p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Badge className={cn("px-3 py-1 text-xs font-medium", riskBadgeClasses(analysisResult.risk_level))}>
-                              {analysisResult.risk_level?.toUpperCase() || "UNKNOWN"} RISK
-                            </Badge>
-                            <Badge variant="secondary" className="px-3 py-1 text-xs bg-gray-100 text-gray-700">
-                              {Math.round((analysisResult.confidence || 0) * 100)}% confidence
-                            </Badge>
-                          </div>
-                        </div>
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Analyzing…
+                        </>
+                      ) : (
+                        <>
+                          <ShieldAlert className="mr-2 h-4 w-4" />
+                          Analyze compliance
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </FormRoot>
+          </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-                          <div className="space-y-4">
-                            <div>
-                              <div className="text-sm font-medium text-gray-700 mb-1">Compliance required</div>
-                              <div className="flex items-center gap-2">
-                                {analysisResult.needs_compliance_logic ? (
-                                  <>
-                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                                    <span className="text-sm text-green-700 font-medium">Yes</span>
-                                  </>
-                                ) : (
-                                  <span className="text-sm text-gray-600">No</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+          {/* Results - Notion style */}
+          {analysisResults.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="mt-12 space-y-6"
+            >
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Analysis Results</h2>
+                  <p className="text-gray-600">Detailed compliance analysis for your features</p>
+                </div>
+                <Button
+                  onClick={() => downloadCsv(analysisResults)}
+                  variant="outline"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download All as CSV
+                </Button>
+              </div>
 
-                          <div>
-                            <div className="text-sm font-medium text-gray-700 mb-2">Action required</div>
-                            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                {analysisResult.action_required || "No specific action required."}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
+              {analysisResults.map((analysisResult, idx) => (
+                <div key={idx} className="bg-white border border-gray-200/70 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+                  <div className="p-8">
+                    <div className="flex items-start justify-between mb-6">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                          Analysis #{idx + 1}
+                          {analysisResult.id && <span className="text-gray-500 font-normal ml-2">• ID: {analysisResult.id}</span>}
+                        </h3>
+                        <p className="text-gray-600">{analysisResult.feature_name || "—"}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge className={cn("px-3 py-1 text-xs font-medium", riskBadgeClasses(analysisResult.risk_level))}>
+                          {analysisResult.risk_level?.toUpperCase() || "UNKNOWN"} RISK
+                        </Badge>
+                        <Badge variant="secondary" className="px-3 py-1 text-xs bg-gray-100 text-gray-700">
+                          {Math.round((analysisResult.confidence || 0) * 100)}% confidence
+                        </Badge>
+                      </div>
+                    </div>
 
-                        {!!analysisResult.applicable_regulations?.length && (
-                          <div className="mb-6">
-                            <div className="text-sm font-medium text-gray-700 mb-3">Applicable regulations</div>
-                            <div className="flex flex-wrap gap-2">
-                              {analysisResult.applicable_regulations.map((reg, i) => (
-                                <Badge key={i} variant={reg.applies ? "default" : "secondary"} className="text-xs bg-blue-50 text-blue-700 border border-blue-200">
-                                  <span className={cn("inline-block h-2 w-2 rounded-full mr-2", reg.applies ? "bg-green-500" : "bg-gray-300")} />
-                                  {reg.name}
-                                  {reg.reason && <span className="ml-1 opacity-75">— {reg.reason}</span>}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {!!analysisResult.implementation_notes?.length && (
-                          <div className="mb-6">
-                            <div className="text-sm font-medium text-gray-700 mb-3">Implementation notes</div>
-                            <ul className="space-y-2">
-                              {analysisResult.implementation_notes.map((note, i) => (
-                                <li key={i} className="flex items-start gap-3">
-                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
-                                  <span className="text-sm text-gray-700">{note}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between pt-6 border-t border-gray-100">
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Info className="h-3.5 w-3.5" />
-                            {new Date(analysisResult.timestamp || Date.now()).toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}
-                          </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                      <div className="space-y-4">
+                        <div>
+                          <div className="text-sm font-medium text-gray-700 mb-1">Compliance required</div>
                           <div className="flex items-center gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              type="button" 
-                              onClick={() => downloadCsv([analysisResult])}
-                              className="text-xs border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg"
-                            >
-                              <Download className="mr-1.5 h-3.5 w-3.5" />
-                              CSV
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              type="button" 
-                              onClick={() => copyJson(analysisResult)}
-                              className="text-xs border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg"
-                            >
-                              <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                              JSON
-                            </Button>
+                            {analysisResult.needs_compliance_logic ? (
+                              <>
+                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                <span className="text-sm text-green-700 font-medium">Yes</span>
+                              </>
+                            ) : (
+                              <span className="text-sm text-gray-600">No</span>
+                            )}
                           </div>
                         </div>
                       </div>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </div>
-          </motion.div>
-        )}
+
+                      <div>
+                        <div className="text-sm font-medium text-gray-700 mb-2">Action required</div>
+                        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            {analysisResult.action_required || "No specific action required."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {!!analysisResult.applicable_regulations?.length && (
+                      <div className="mb-6">
+                        <div className="text-sm font-medium text-gray-700 mb-3">Applicable regulations</div>
+                        <div className="flex flex-wrap gap-2">
+                          {analysisResult.applicable_regulations.map((reg, i) => (
+                            <Badge key={i} variant={reg.applies ? "default" : "secondary"} className="text-xs bg-blue-50 text-blue-700 border border-blue-200">
+                              <span className={cn("inline-block h-2 w-2 rounded-full mr-2", reg.applies ? "bg-green-500" : "bg-gray-300")} />
+                              {reg.name}
+                              {reg.reason && <span className="ml-1 opacity-75">— {reg.reason}</span>}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {!!analysisResult.implementation_notes?.length && (
+                      <div className="mb-6">
+                        <div className="text-sm font-medium text-gray-700 mb-3">Implementation notes</div>
+                        <ul className="space-y-2">
+                          {analysisResult.implementation_notes.map((note, i) => (
+                            <li key={i} className="flex items-start gap-3">
+                              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              <span className="text-sm text-gray-700">{note}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Info className="h-3.5 w-3.5" />
+                        {new Date(analysisResult.timestamp || Date.now()).toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          type="button" 
+                          onClick={() => downloadCsv([analysisResult])}
+                          className="text-xs border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg"
+                        >
+                          <Download className="mr-1.5 h-3.5 w-3.5" />
+                          CSV
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          type="button" 
+                          onClick={() => copyJson(analysisResult)}
+                          className="text-xs border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg"
+                        >
+                          <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                          JSON
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </div>
       </div>
     </TooltipProvider>
   )
