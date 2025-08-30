@@ -261,57 +261,20 @@ function testPythonAndReturn(cmdOrPath: string): string | null {
 }
 
 /**
- * Resolve python command: prefer configured path, then envs, managers, PATH sweep, and common installs.
- * Returns the first working absolute path (or command) that can run Python.
+ * Resolve python command: FORCE use configured path from settings.json only.
+ * No auto-discovery, no fallback to system python.
  */
 function resolvePythonCmd(configured?: string): string {
-    const tried: string[] = [];
-    const pushTry = (arr: string[], label: string) => {
-        for (const i of arr) {
-            if (!i) continue;
-            tried.push(i);
-        }
-        console.log(`Candidate batch [${label}]: ${arr.length} items`);
-    };
-
-    console.log('🔍 Starting Python path resolution (exhaustive)…');
-
-    // 0) Configured path (if explicit path, not just generic command)
-    const configuredIsGeneric = !configured || ['python','python3','py'].includes(configured.trim().toLowerCase());
-    if (configured && !configuredIsGeneric) {
-        pushTry([configured], 'configured');
+    console.log('� Python path resolution: FORCING configured path only');
+    
+    if (configured && configured.trim()) {
+        console.log(`✅ Using FORCED configured Python: ${configured}`);
+        return configured;
     }
-
-    // 1) Active environments
-    pushTry(getActiveEnvCandidates(), 'active-env');
-
-    // 2) Managers (py launcher, conda, pyenv, asdf, poetry, pipenv)
-    pushTry(getManagerCandidates(), 'managers');
-
-    // 3) PATH sweep
-    pushTry(getPathSweepCandidates(), 'path-sweep');
-
-    // 4) Common installs
-    pushTry(getCommonInstallCandidates(os.homedir()), 'common-installs');
-
-    // 5) Finally, generic configured or default
-    pushTry([configured || (process.platform === 'win32' ? 'python' : 'python3')], 'fallback-configured/default');
-
-    const candidates = dedupeKeepOrder(tried);
-    console.log(`Total unique python candidates: ${candidates.length}`);
-
-    for (let i = 0; i < candidates.length; i++) {
-        const c = candidates[i];
-        console.log(`[${i + 1}/${candidates.length}] Testing Python: ${c}`);
-        const okPath = testPythonAndReturn(c);
-        if (okPath) {
-            console.log(`✅ Using Python: ${okPath}`);
-            return okPath;
-        }
-    }
-
-    console.log('❌ No working Python found; returning configured or generic command.');
-    return configured || (process.platform === 'win32' ? 'python' : 'python3');
+    
+    console.log('❌ No configured Python path found in settings.json');
+    console.log('Please set tiktokCompliance.pythonPath in your workspace settings');
+    return 'python'; // This will fail with a clear error message
 }
 
 // Resolve python command: prefer configured path, then environment detection, then common paths
@@ -595,29 +558,18 @@ export function activate(context: vscode.ExtensionContext) {
         const outputChannelLocal = outputChannel; // reuse existing channel
         outputChannelLocal.appendLine('🔎 Resolving Python path...');
         try {
-            // Read user/workspace configured python path
+            // Read user/workspace configured python path - FORCE use our setting only
             const cfg = vscode.workspace.getConfiguration('tiktokCompliance');
             const configuredPath = cfg.get<string>('pythonPath') || undefined;
 
-            // Try to read VS Code Python extension common keys
-            const pythonExtCfgKeys = [
-                'python.defaultInterpreterPath',
-                'python.pythonPath',
-                'python.path'
-            ];
-            let pythonExtConfigured: string | undefined = undefined;
-            for (const key of pythonExtCfgKeys) {
-                try {
-                    const val = vscode.workspace.getConfiguration().get<string>(key);
-                    if (val && val.trim().length > 0) { pythonExtConfigured = val; break; }
-                } catch (e) { /* ignore */ }
-            }
+            // FORCE: Ignore VS Code Python extension settings completely
+            console.log('🔒 FORCING use of tiktokCompliance.pythonPath only, ignoring VS Code Python extension');
 
-            const finalConfigured = pythonExtConfigured || configuredPath;
+            const finalConfigured = configuredPath;
             const resolved = resolvePythonCmd(finalConfigured);
 
-            outputChannelLocal.appendLine(`Configured override: ${finalConfigured || 'none'}`);
-            outputChannelLocal.appendLine(`Resolved python command: ${resolved}`);
+            outputChannelLocal.appendLine(`🔒 FORCED tiktokCompliance.pythonPath: ${finalConfigured || 'NOT SET'}`);
+            outputChannelLocal.appendLine(`🔒 FORCED python command: ${resolved}`);
 
             // Run version check
             if (!resolved) {
@@ -764,32 +716,15 @@ async function runComplianceAnalysis(features: any[], context: vscode.ExtensionC
         const pythonScript = getPythonScriptPath(context);
         const inputData = JSON.stringify({ features });
 
-    // Read configured pythonPath from user/workspace settings (allows hardcoding)
+    // Read configured pythonPath from user/workspace settings - FORCE use our setting only
     const cfg = vscode.workspace.getConfiguration('tiktokCompliance');
     const configuredPath = cfg.get<string>('pythonPath') || undefined;
 
-    // Attempt to read VS Code Python extension settings (if user uses the Python extension)
-    const pythonExtCfgKeys = [
-        'python.defaultInterpreterPath', // VS Code newer key
-        'python.pythonPath', // older Python extension key
-        'python.path' // fallback
-    ];
+    // FORCE: Ignore VS Code Python extension settings completely
+    console.log('🔒 FORCING use of tiktokCompliance.pythonPath only, ignoring VS Code Python extension');
 
-    let pythonExtConfigured: string | undefined = undefined;
-    for (const key of pythonExtCfgKeys) {
-        try {
-            const val = vscode.workspace.getConfiguration().get<string>(key);
-            if (val && val.trim().length > 0) {
-                pythonExtConfigured = val;
-                break;
-            }
-        } catch (e) {
-            // ignore
-        }
-    }
-
-    // Use VS Code Python extension interpreter if available
-    const finalConfigured = pythonExtConfigured || configuredPath;
+    // Use ONLY our configured path
+    const finalConfigured = configuredPath;
 
     // Resolve python command: prefer finalConfigured, else fallback to resolver
     let pythonCmd = resolvePythonCmd(finalConfigured);
@@ -812,7 +747,7 @@ async function runComplianceAnalysis(features: any[], context: vscode.ExtensionC
     }
 
     // Log which python will be used for easier debugging
-    console.log(`Resolved python command: ${pythonCmd} (configured override: ${finalConfigured || 'none'})`);
+    console.log(`🔒 FORCED python command: ${pythonCmd} (from tiktokCompliance.pythonPath: ${finalConfigured || 'NOT SET'})`);
 
     const child = cp.spawn(pythonCmd, pythonArgs, {
             cwd: path.join(context.extensionPath, 'src', 'python'),
