@@ -1371,8 +1371,7 @@ function formatResultAsHtml(results: any): string {
     
     // Action buttons
     html += `<div class="action-buttons">
-        <button onclick="copyResult('${escapeForJs(JSON.stringify(results))}')">📋 Copy JSON</button>
-        <button onclick="exportJson('${escapeForJs(JSON.stringify(results))}')">💾 Export JSON</button>
+    <!-- Copy/Export JSON buttons removed per user request -->
     </div>`;
     
     return html;
