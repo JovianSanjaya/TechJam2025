@@ -1,0 +1,390 @@
+{
+  "analysis_summary": {
+    "total_features": 4,
+    "features_requiring_compliance": 4,
+    "high_risk_features": 0,
+    "human_review_needed": 0,
+    "rag_enabled": true,
+    "analysis_timestamp": "2025-08-30T17:30:12.103101",
+    "system_version": "Enhanced BE v1.0",
+    "backend_architecture": "Flask + Multi-Agent + Forced RAG"
+  },
+  "detailed_results": [
+    {
+      "feature_id": "be_feat_001",
+      "feature_name": "Enhanced Age Verification Gate",
+      "analysis_type": "enhanced_be_service",
+      "needs_compliance_logic": true,
+      "confidence": 0.47,
+      "risk_level": "low",
+      "action_required": "MONITOR_COMPLIANCE",
+      "applicable_regulations": [
+        {
+          "name": "COPPA",
+          "applies": true,
+          "reason": "Feature involves data collection from minors or children"
+        }
+      ],
+      "implementation_notes": [
+        "✅ LOW RISK: Feature 'Enhanced Age Verification Gate' appears compliant but monitor for changes",
+        "👤 User Rights: Implement data access and deletion capabilities",
+        "📋 Consent: Ensure clear privacy policy and consent mechanisms",
+        "📍 Location Data: Require explicit opt-in consent for location tracking",
+        "⚠️ Precision: Consider data accuracy requirements vs privacy",
+        "👶 COPPA Compliance: Implement parental consent mechanisms",
+        "🛡️ Child Safety: Enhanced content filtering and safety measures required"
+      ],
+      "agent_results": {
+        "feature_name": "Enhanced Age Verification Gate",
+        "feature_id": "",
+        "needs_compliance_logic": true,
+        "confidence": 1.0,
+        "reasoning": [
+          "Feature identified as compliance-driven"
+        ],
+        "applicable_regulations": [],
+        "action_required": "IMPLEMENT_COMPLIANCE",
+        "human_review_needed": false,
+        "risk_level": "low",
+        "implementation_notes": [
+          "Technical complexity: low",
+          "Security considerations: 2"
+        ],
+        "agent_consensus": 0.8333333333333334,
+        "analysis_timestamp": "2025-08-30T17:30:13.984872",
+        "agents_used": [
+          "Intent Classifier",
+          "Legal Analyst",
+          "Technical Analyst"
+        ],
+        "total_agents": 3,
+        "successful_agents": 3
+      },
+      "llm_analysis": {
+        "raw_response": "Error processing with OpenRouter: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions",
+        "analysis_type": "llm_text_rag",
+        "confidence": 0.7,
+        "rag_used": true,
+        "enhanced_patterns": [],
+        "compliance_insights": {
+          "overall_assessment": "LLM analysis available in raw response",
+          "key_risks": [],
+          "regulatory_gaps": [],
+          "implementation_suggestions": []
+        },
+        "enhanced_recommendations": [
+          "Review LLM analysis in raw response",
+          "Manual interpretation may be required"
+        ]
+      },
+      "rag_analysis": {
+        "documents_retrieved": 0,
+        "search_query": "Feature: Enhanced Age Verification Gate\n            Description: Advanced ASL verification system for users under 16 with comprehensive PF restrictions and COPPA compliance\n            TikTok social media compliance regulatory requirements",
+        "top_documents": [],
+        "rag_influence": "No relevant documents found - using general compliance knowledge"
+      },
+      "timestamp": "2025-08-30T17:30:15.312965",
+      "be_service_used": true,
+      "rag_enhanced": true,
+      "rag_summary": {
+        "documents_found": 0,
+        "relevance_available": false,
+        "rag_influence": "No relevant documents found - using general compliance knowledge"
+      }
+    },
+    {
+      "feature_id": "be_feat_002",
+      "feature_name": "Smart Geolocation Service",
+      "analysis_type": "enhanced_be_service",
+      "needs_compliance_logic": true,
+      "confidence": 0.48,
+      "risk_level": "low",
+      "action_required": "MONITOR_COMPLIANCE",
+      "applicable_regulations": [
+        {
+          "name": "Location Privacy Laws",
+          "applies": true,
+          "reason": "Feature involves location data collection or tracking"
+        }
+      ],
+      "implementation_notes": [
+        "✅ LOW RISK: Feature 'Smart Geolocation Service' appears compliant but monitor for changes",
+        "📋 Data Collection: Implement data minimization and purpose limitation",
+        "🔒 Security: Ensure encryption for stored personal data",
+        "📍 Location Data: Require explicit opt-in consent for location tracking",
+        "⚠️ Precision: Consider data accuracy requirements vs privacy",
+        "🤖 Algorithmic Transparency: Document decision-making processes",
+        "⚖️ Bias Prevention: Implement fairness testing and monitoring"
+      ],
+      "agent_results": {
+        "feature_name": "Smart Geolocation Service",
+        "feature_id": "",
+        "needs_compliance_logic": true,
+        "confidence": 0.8461538461538461,
+        "reasoning": [
+          "Feature identified as compliance-driven"
+        ],
+        "applicable_regulations": [],
+        "action_required": "IMPLEMENT_COMPLIANCE",
+        "human_review_needed": false,
+        "risk_level": "low",
+        "implementation_notes": [
+          "Technical complexity: medium",
+          "Security considerations: 3"
+        ],
+        "agent_consensus": 0.7820512820512819,
+        "analysis_timestamp": "2025-08-30T17:30:16.127746",
+        "agents_used": [
+          "Intent Classifier",
+          "Legal Analyst",
+          "Technical Analyst"
+        ],
+        "total_agents": 3,
+        "successful_agents": 3
+      },
+      "llm_analysis": {
+        "raw_response": "Error processing with OpenRouter: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions",
+        "analysis_type": "llm_text_rag",
+        "confidence": 0.7,
+        "rag_used": true,
+        "enhanced_patterns": [],
+        "compliance_insights": {
+          "overall_assessment": "LLM analysis available in raw response",
+          "key_risks": [],
+          "regulatory_gaps": [],
+          "implementation_suggestions": []
+        },
+        "enhanced_recommendations": [
+          "Review LLM analysis in raw response",
+          "Manual interpretation may be required"
+        ]
+      },
+      "rag_analysis": {
+        "documents_retrieved": 0,
+        "search_query": "Feature: Smart Geolocation Service\n            Description: AI-powered GH-based location tracking for content localization with enhanced NR compliance and GDPR adherence\n            TikTok social media compliance regulatory requirements",
+        "top_documents": [],
+        "rag_influence": "No relevant documents found - using general compliance knowledge"
+      },
+      "timestamp": "2025-08-30T17:30:17.439604",
+      "be_service_used": true,
+      "rag_enhanced": true,
+      "rag_summary": {
+        "documents_found": 0,
+        "relevance_available": false,
+        "rag_influence": "No relevant documents found - using general compliance knowledge"
+      }
+    },
+    {
+      "feature_id": "be_feat_003",
+      "feature_name": "Adaptive Content Recommendation",
+      "analysis_type": "enhanced_be_service",
+      "needs_compliance_logic": true,
+      "confidence": 0.44,
+      "risk_level": "low",
+      "action_required": "MONITOR_COMPLIANCE",
+      "applicable_regulations": [
+        {
+          "name": "DSA",
+          "applies": true,
+          "reason": "Feature involves algorithmic content curation or moderation"
+        }
+      ],
+      "implementation_notes": [
+        "✅ LOW RISK: Feature 'Adaptive Content Recommendation' appears compliant but monitor for changes",
+        "🤖 Algorithmic Transparency: Document decision-making processes",
+        "⚖️ Bias Prevention: Implement fairness testing and monitoring"
+      ],
+      "agent_results": {
+        "feature_name": "Adaptive Content Recommendation",
+        "feature_id": "",
+        "needs_compliance_logic": true,
+        "confidence": 0.8,
+        "reasoning": [
+          "Feature identified as compliance-driven"
+        ],
+        "applicable_regulations": [],
+        "action_required": "IMPLEMENT_COMPLIANCE",
+        "human_review_needed": false,
+        "risk_level": "low",
+        "implementation_notes": [
+          "Technical complexity: high",
+          "Security considerations: 2"
+        ],
+        "agent_consensus": 0.7666666666666666,
+        "analysis_timestamp": "2025-08-30T17:30:19.064650",
+        "agents_used": [
+          "Intent Classifier",
+          "Legal Analyst",
+          "Technical Analyst"
+        ],
+        "total_agents": 3,
+        "successful_agents": 3
+      },
+      "llm_analysis": {
+        "raw_response": "Error processing with OpenRouter: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions",
+        "analysis_type": "llm_text_rag",
+        "confidence": 0.7,
+        "rag_used": true,
+        "enhanced_patterns": [],
+        "compliance_insights": {
+          "overall_assessment": "LLM analysis available in raw response",
+          "key_risks": [],
+          "regulatory_gaps": [],
+          "implementation_suggestions": []
+        },
+        "enhanced_recommendations": [
+          "Review LLM analysis in raw response",
+          "Manual interpretation may be required"
+        ]
+      },
+      "rag_analysis": {
+        "documents_retrieved": 0,
+        "search_query": "Feature: Adaptive Content Recommendation\n            Description: Deep learning ML-powered PF algorithm for personalized content delivery with privacy-first design and youth protection\n            TikTok social media compliance regulatory requirements",
+        "top_documents": [],
+        "rag_influence": "No relevant documents found - using general compliance knowledge"
+      },
+      "timestamp": "2025-08-30T17:30:20.735876",
+      "be_service_used": true,
+      "rag_enhanced": true,
+      "rag_summary": {
+        "documents_found": 0,
+        "relevance_available": false,
+        "rag_influence": "No relevant documents found - using general compliance knowledge"
+      }
+    },
+    {
+      "feature_id": "be_feat_004",
+      "feature_name": "Real-time Content Moderation",
+      "analysis_type": "enhanced_be_service",
+      "needs_compliance_logic": true,
+      "confidence": 0.47,
+      "risk_level": "low",
+      "action_required": "MONITOR_COMPLIANCE",
+      "applicable_regulations": [
+        {
+          "name": "DSA",
+          "applies": true,
+          "reason": "Feature involves algorithmic content curation or moderation"
+        }
+      ],
+      "implementation_notes": [
+        "✅ LOW RISK: Feature 'Real-time Content Moderation' appears compliant but monitor for changes",
+        "👶 COPPA Compliance: Implement parental consent mechanisms",
+        "🛡️ Child Safety: Enhanced content filtering and safety measures required",
+        "🤖 Algorithmic Transparency: Document decision-making processes",
+        "⚖️ Bias Prevention: Implement fairness testing and monitoring"
+      ],
+      "agent_results": {
+        "feature_name": "Real-time Content Moderation",
+        "feature_id": "",
+        "needs_compliance_logic": true,
+        "confidence": 0.875,
+        "reasoning": [
+          "Feature identified as compliance-driven"
+        ],
+        "applicable_regulations": [],
+        "action_required": "IMPLEMENT_COMPLIANCE",
+        "human_review_needed": false,
+        "risk_level": "low",
+        "implementation_notes": [
+          "Technical complexity: high",
+          "Security considerations: 2"
+        ],
+        "agent_consensus": 0.775,
+        "analysis_timestamp": "2025-08-30T17:30:22.331666",
+        "agents_used": [
+          "Intent Classifier",
+          "Legal Analyst",
+          "Technical Analyst"
+        ],
+        "total_agents": 3,
+        "successful_agents": 3
+      },
+      "llm_analysis": {
+        "raw_response": "Error processing with OpenRouter: 429 Client Error: Too Many Requests for url: https://openrouter.ai/api/v1/chat/completions",
+        "analysis_type": "llm_text_rag",
+        "confidence": 0.7,
+        "rag_used": true,
+        "enhanced_patterns": [],
+        "compliance_insights": {
+          "overall_assessment": "LLM analysis available in raw response",
+          "key_risks": [],
+          "regulatory_gaps": [],
+          "implementation_suggestions": []
+        },
+        "enhanced_recommendations": [
+          "Review LLM analysis in raw response",
+          "Manual interpretation may be required"
+        ]
+      },
+      "rag_analysis": {
+        "documents_retrieved": 0,
+        "search_query": "Feature: Real-time Content Moderation\n            Description: AI-driven content filtering system for age-appropriate content with automated COPPA compliance checking\n            TikTok social media compliance regulatory requirements",
+        "top_documents": [],
+        "rag_influence": "No relevant documents found - using general compliance knowledge"
+      },
+      "timestamp": "2025-08-30T17:30:23.601193",
+      "be_service_used": true,
+      "rag_enhanced": true,
+      "rag_summary": {
+        "documents_found": 0,
+        "relevance_available": false,
+        "rag_influence": "No relevant documents found - using general compliance knowledge"
+      }
+    }
+  ],
+  "recommendations": [
+    "🔧 BE Service Analysis: 4 features processed using Flask + Multi-Agent architecture",
+    "⚖️ Compliance Implementation: 4 features need compliance logic",
+    "📚 RAG Performance: 20 legal documents retrieved (avg relevance: 0.60)",
+    "🏗️ Architecture: BE services successfully orchestrated multi-agent analysis",
+    "🔄 Integration: Flask API ready for frontend consumption"
+  ],
+  "audit_trail": [
+    {
+      "feature_id": "be_feat_001",
+      "timestamp": "2025-08-30T17:30:15.312965",
+      "service_used": "BE ComplianceService",
+      "rag_used": true,
+      "confidence": 0.47,
+      "action": "MONITOR_COMPLIANCE"
+    },
+    {
+      "feature_id": "be_feat_002",
+      "timestamp": "2025-08-30T17:30:17.439604",
+      "service_used": "BE ComplianceService",
+      "rag_used": true,
+      "confidence": 0.48,
+      "action": "MONITOR_COMPLIANCE"
+    },
+    {
+      "feature_id": "be_feat_003",
+      "timestamp": "2025-08-30T17:30:20.735876",
+      "service_used": "BE ComplianceService",
+      "rag_used": true,
+      "confidence": 0.44,
+      "action": "MONITOR_COMPLIANCE"
+    },
+    {
+      "feature_id": "be_feat_004",
+      "timestamp": "2025-08-30T17:30:23.601193",
+      "service_used": "BE ComplianceService",
+      "rag_used": true,
+      "confidence": 0.47,
+      "action": "MONITOR_COMPLIANCE"
+    }
+  ],
+  "rag_performance": {
+    "documents_retrieved": 20,
+    "avg_relevance": 0.6,
+    "fallback_used": true,
+    "vector_store_type": "SimpleFallbackStore"
+  },
+  "system_metadata": {
+    "backend_type": "Flask + Multi-Agent",
+    "rag_forced": true,
+    "vector_store_type": "ChromaDB with SimpleFallback",
+    "llm_model": "meta-llama/llama-4-maverick:free",
+    "analysis_engine": "BE Services"
+  }
+}

@@ -1,15 +1,19 @@
-try:
-    import chromadb
-    from chromadb.utils import embedding_functions
-    CHROMADB_AVAILABLE = True
-except ImportError:
-    CHROMADB_AVAILABLE = False
-    print("ChromaDB not available. Install with: pip install chromadb")
-
+import sys
 import hashlib
 import json
 from typing import List, Dict, Any
 from config import ComplianceConfig
+
+try:
+    import chromadb
+    from chromadb.utils import embedding_functions
+    CHROMADB_AVAILABLE = True
+except (ImportError, RuntimeError) as e:
+    CHROMADB_AVAILABLE = False
+    if "sqlite3" in str(e).lower():
+        print("⚠️ ChromaDB not available due to SQLite version incompatibility. Using fallback store.", file=sys.stderr)
+    else:
+        print(f"⚠️ ChromaDB not available: {e}. Using fallback store.", file=sys.stderr)
 
 class VectorService:
     def __init__(self, collection_name="legal_docs"):
@@ -201,12 +205,20 @@ def get_vector_store():
     
     if CHROMADB_AVAILABLE:
         try:
-            print("🔍 Attempting to use ChromaDB...")
+            print("🔍 Attempting to use ChromaDB vector store...", file=sys.stderr)
             store = VectorService()
-            print("✅ ChromaDB vector store initialized")
+            print("✅ ChromaDB vector store initialized", file=sys.stderr)
             return store
+        except RuntimeError as e:
+            if "sqlite3" in str(e).lower():
+                print(f"⚠️ ChromaDB failed due to SQLite version: {str(e)[:100]}...", file=sys.stderr)
+                print("📚 Falling back to SimpleFallbackStore for RAG functionality...", file=sys.stderr)
+            else:
+                print(f"⚠️ ChromaDB initialization failed: {e}", file=sys.stderr)
         except Exception as e:
-            print(f"⚠️ ChromaDB initialization failed: {e}")
+            print(f"⚠️ ChromaDB initialization failed: {e}", file=sys.stderr)
+    else:
+        print("� ChromaDB not available - using fallback store", file=sys.stderr)
     
-    print("📚 Using SimpleFallbackStore...")
+    print("�📚 Using SimpleFallbackStore for keyword-based RAG...", file=sys.stderr)
     return SimpleFallbackStore()

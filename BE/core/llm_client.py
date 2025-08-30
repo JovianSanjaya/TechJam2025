@@ -14,13 +14,15 @@ class LLMClient:
         self.model = ComplianceConfig.OPENROUTER_MODEL
         self.base_url = "https://openrouter.ai/api/v1/chat/completions"
     
-    async def analyze(self, prompt: str, timeout: int = 30) -> str:
+    async def analyze(self, prompt: str, timeout: int = 30, static_analysis: Dict = None, retrieved_docs: Dict = None) -> str:
         """
-        Analyze prompt using LLM
+        Enhanced LLM analysis with RAG support (matching code_analyzer_llm_clean format)
         
         Args:
             prompt: The prompt to analyze
             timeout: Request timeout in seconds
+            static_analysis: Static analysis results for context
+            retrieved_docs: Retrieved documents from vector store
             
         Returns:
             LLM response text
@@ -32,39 +34,99 @@ class LLMClient:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://github.com/JovianSanjaya/TechJam2025",
-            "X-Title": "Legal Compliance RAG System"
+            "X-Title": "TikTok Compliance Analyzer"
         }
         
-        # Enhanced prompt for better structured responses
+        # Build RAG context section (force RAG usage)
+        rag_context = ""
+        if retrieved_docs and retrieved_docs.get('documents') and retrieved_docs['documents'][0]:
+            rag_context = "\n**📚 RELEVANT LEGAL DOCUMENTS:**\n"
+            documents = retrieved_docs['documents'][0]
+            metadatas = retrieved_docs.get('metadatas', [[]])[0]
+            
+            for i, (doc, meta) in enumerate(zip(documents[:3], metadatas[:3] if metadatas else [{}]*3)):
+                title = meta.get('title', f'Document {i+1}') if meta else f'Document {i+1}'
+                rag_context += f"\n**{title}:**\n{doc[:800]}...\n"
+            
+            rag_context += "\n**Use these legal documents to inform your analysis.**\n"
+        else:
+            rag_context = "\n**📚 LEGAL CONTEXT:** Using fallback RAG store - general compliance knowledge enhanced with keyword matching.\n"
+        
+        # Enhanced prompt matching code_analyzer_llm_clean format
         enhanced_prompt = f"""
-Analyze the following feature for legal compliance requirements:
+You are an expert compliance analyst specializing in social media platforms like TikTok. 
+Analyze the following feature for regulatory compliance issues, particularly focusing on:
 
+1. **COPPA (Children's Online Privacy Protection Act)** - Age verification, parental consent
+2. **GDPR/Privacy Laws** - Data collection, consent, user rights  
+3. **Content Moderation** - Age-appropriate content, harmful content filtering
+4. **Geolocation Privacy** - Location tracking, data localization
+5. **Platform-specific regulations** - Youth protection, algorithmic transparency
+
+{rag_context}
+
+**Feature to analyze:**
 {prompt}
 
-Please provide a structured analysis including:
-1. Applicable regulations (COPPA, GDPR, CCPA, etc.)
-2. Compliance risks (high/medium/low)
-3. Required implementation steps
-4. Potential legal concerns
+**Static Analysis Context:**
+{f"- Patterns Found: {len(static_analysis.get('patterns', []))}" if static_analysis else "- No static analysis provided"}
+{f"- Categories: {', '.join([k for k, v in static_analysis.items() if isinstance(v, list) and v])}" if static_analysis else ""}
 
-Format your response as JSON with these fields:
-- applicable_regulations: [list of relevant laws]
-- risk_level: "high"/"medium"/"low"
-- compliance_requirements: [list of specific requirements]
-- recommendations: [list of actionable recommendations]
+**Please provide a JSON response with:**
+{{
+  "enhanced_patterns": [
+    {{
+      "pattern_type": "category",
+      "pattern_name": "specific_pattern",
+      "confidence": 0.0-1.0,
+      "location": "description",
+      "code_snippet": "relevant_code",
+      "description": "detailed_explanation",
+      "regulation_hints": ["COPPA", "GDPR", etc.],
+      "llm_analysis": "your_detailed_reasoning",
+      "severity": "low|medium|high|critical",
+      "legal_basis": "reference_to_retrieved_documents_if_applicable"
+    }}
+  ],
+  "compliance_insights": {{
+    "overall_assessment": "summary",
+    "key_risks": ["risk1", "risk2"],
+    "regulatory_gaps": ["gap1", "gap2"],
+    "implementation_suggestions": ["suggestion1", "suggestion2"],
+    "legal_references": ["references_from_retrieved_docs"]
+  }},
+  "enhanced_recommendations": [
+    "actionable_recommendation_1",
+    "actionable_recommendation_2"
+  ],
+  "confidence_adjustments": {{
+    "reasoning": "why_adjustments_made",
+    "adjusted_risk_score": 0.0-1.0,
+    "rag_influence": "how_retrieved_documents_influenced_analysis"
+  }}
+}}
+
+Focus on practical, actionable insights that developers can implement immediately.
 """
         
         payload = {
             "model": self.model,
             "messages": [
+                {
+                    "role": "system", 
+                    "content": "You are an expert legal compliance analyst for social media platforms. Provide detailed, accurate analysis in valid JSON format."
+                },
                 {"role": "user", "content": enhanced_prompt}
             ],
-            "temperature": 0.3,
-            "max_tokens": 1000
+            "max_tokens": 2000,
+            "temperature": 0.3,  # Lower temperature for more consistent analysis
+            "top_p": 0.9
         }
         
         try:
-            print(f"🌐 Calling OpenRouter API with model: {self.model}")
+            print(f"🌐 Calling OpenRouter API...")
+            print(f"   Model: {self.model}")
+            print(f"   RAG Context: {'✅ Documents provided' if retrieved_docs else '⚠️ Using fallback context'}")
             
             # Run in thread pool to avoid blocking
             loop = asyncio.get_event_loop()

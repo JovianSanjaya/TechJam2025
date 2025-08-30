@@ -56,74 +56,41 @@ class LegalAnalysisAgent(ComplianceAgent):
             "risk_level": "low"
         }
         
-        # Use LLM for enhanced analysis if available
+        # Use LLM for enhanced analysis if available (with forced RAG)
         if self.llm_client:
             try:
+                # Create enhanced static analysis context
+                static_analysis = {
+                    'patterns': ['legal_analysis'],
+                    'regulations_found': len(relevant_regs.get('documents', [[]])[0]) if relevant_regs else 0,
+                    'vector_search_results': relevant_regs
+                }
+                
                 llm_prompt = f"""
 Feature Name: {feature.get('feature_name', 'Unknown')}
 Description: {feature_description}
 
-Context from legal database:
-{relevant_regs.get('documents', [{}])[0][:500] if relevant_regs.get('documents') and relevant_regs['documents'][0] else 'No relevant documents found'}
-
-Please analyze this feature for legal compliance requirements.
+Analyze this TikTok platform feature for comprehensive legal compliance requirements.
+Focus on applicable regulations, risk assessment, and implementation requirements.
 """
-                print(f"  🧠 Using LLM for legal analysis...")
-                llm_response = self.llm_client(llm_prompt)
+                print(f"  🧠 Using enhanced LLM for legal analysis with RAG...")
                 
-                # Try to parse structured response
-                try:
-                    import json
-                    if llm_response.strip().startswith('{'):
-                        llm_data = json.loads(llm_response)
-                        analysis["reasoning"] = "LLM-powered analysis: " + llm_data.get('compliance_requirements', str(llm_data))
-                        analysis["confidence"] = 0.9
-                        
-                        # Extract applicable regulations from LLM response
-                        if 'applicable_regulations' in llm_data:
-                            for reg in llm_data['applicable_regulations']:
-                                analysis["applicable_regulations"].append({
-                                    "regulation": reg,
-                                    "relevance": 0.9,
-                                    "content_excerpt": "LLM-identified regulation",
-                                    "requirements": llm_data.get('compliance_requirements', []),
-                                    "jurisdiction": "Various",
-                                    "compliance_risk": llm_data.get('risk_level', 'medium')
-                                })
-                        
-                        analysis["risk_level"] = llm_data.get('risk_level', 'medium')
-                    else:
-                        # Handle non-JSON response
-                        analysis["reasoning"] = f"LLM analysis: {llm_response[:200]}..."
-                        analysis["confidence"] = 0.8
-                        
-                        # Look for regulation mentions in text
-                        regulations = ["COPPA", "GDPR", "CCPA", "COPPA", "DSA", "DMA"]
-                        found_regs = [reg for reg in regulations if reg.lower() in llm_response.lower()]
-                        
-                        for reg in found_regs:
-                            analysis["applicable_regulations"].append({
-                                "regulation": reg,
-                                "relevance": 0.8,
-                                "content_excerpt": "Mentioned in LLM analysis",
-                                "requirements": ["See LLM analysis for details"],
-                                "jurisdiction": "Various",
-                                "compliance_risk": "medium"
-                            })
-                        
-                        if "high risk" in llm_response.lower():
-                            analysis["risk_level"] = "high"
-                        elif "low risk" in llm_response.lower():
-                            analysis["risk_level"] = "low"
-                        else:
-                            analysis["risk_level"] = "medium"
+                # Call enhanced LLM client with RAG support
+                if hasattr(self.llm_client, 'analyze'):
+                    llm_response = await self.llm_client.analyze(
+                        llm_prompt, 
+                        static_analysis=static_analysis,
+                        retrieved_docs=relevant_regs
+                    )
+                else:
+                    # Fallback for function-style LLM client
+                    llm_response = self.llm_client(llm_prompt)
                 
-                except json.JSONDecodeError:
-                    analysis["reasoning"] = f"LLM analysis (text): {llm_response[:200]}..."
-                    analysis["confidence"] = 0.7
+                # Parse enhanced response format
+                analysis.update(self._parse_enhanced_llm_response(llm_response, relevant_regs))
                 
             except Exception as e:
-                print(f"    ⚠️ LLM analysis failed: {e}")
+                print(f"    ⚠️ Enhanced LLM analysis failed: {e}")
                 # Fall back to original logic
                 pass
         
@@ -150,23 +117,88 @@ Please analyze this feature for legal compliance requirements.
                     analysis["applicable_regulations"].append(reg_analysis)
                     analysis["evidence"].append(f"Regulation '{reg_analysis['regulation']}' with relevance {relevance_score:.2f}")
         
-        # Generate reasoning if not set by LLM
-        if not analysis["reasoning"]:
-            if analysis["applicable_regulations"]:
-                reg_count = len(analysis["applicable_regulations"])
-                max_relevance = max(reg["relevance"] for reg in analysis["applicable_regulations"])
-                analysis["reasoning"] = f"Found {reg_count} applicable regulations with max relevance {max_relevance:.2f}"
-                analysis["confidence"] = min(max_relevance * 1.2, 1.0)
+        return analysis
+    
+    def _parse_enhanced_llm_response(self, llm_response: str, retrieved_docs: Dict) -> Dict:
+        """Parse enhanced LLM response matching code_analyzer_llm_clean format"""
+        try:
+            import json
+            # Try to extract JSON from response
+            json_start = llm_response.find('{')
+            json_end = llm_response.rfind('}') + 1
+            if json_start != -1 and json_end != -1:
+                json_str = llm_response[json_start:json_end]
+                llm_data = json.loads(json_str)
                 
-                # Determine overall risk level
-                risk_levels = [reg["compliance_risk"] for reg in analysis["applicable_regulations"]]
-                if "high" in risk_levels:
-                    analysis["risk_level"] = "high"
-                elif "medium" in risk_levels:
-                    analysis["risk_level"] = "medium"
+                enhanced_analysis = {
+                    "reasoning": "Enhanced LLM analysis with RAG: " + llm_data.get('compliance_insights', {}).get('overall_assessment', 'Analysis completed'),
+                    "confidence": 0.9,
+                    "llm_enhanced": True,
+                    "rag_influence": llm_data.get('confidence_adjustments', {}).get('rag_influence', 'RAG documents informed analysis')
+                }
+                
+                # Extract applicable regulations from enhanced patterns
+                if 'enhanced_patterns' in llm_data:
+                    for pattern in llm_data['enhanced_patterns']:
+                        enhanced_analysis.setdefault('applicable_regulations', []).append({
+                            "regulation": pattern.get('pattern_name', 'Unknown'),
+                            "relevance": pattern.get('confidence', 0.8),
+                            "content_excerpt": pattern.get('description', 'LLM-identified pattern'),
+                            "requirements": pattern.get('regulation_hints', []),
+                            "jurisdiction": "Various",
+                            "compliance_risk": pattern.get('severity', 'medium'),
+                            "legal_basis": pattern.get('legal_basis', 'LLM analysis')
+                        })
+                
+                # Extract risk level
+                if 'confidence_adjustments' in llm_data and 'adjusted_risk_score' in llm_data['confidence_adjustments']:
+                    risk_score = llm_data['confidence_adjustments']['adjusted_risk_score']
+                    if risk_score > 0.8:
+                        enhanced_analysis['risk_level'] = 'high'
+                    elif risk_score > 0.5:
+                        enhanced_analysis['risk_level'] = 'medium'
+                    else:
+                        enhanced_analysis['risk_level'] = 'low'
+                
+                return enhanced_analysis
             else:
-                analysis["reasoning"] = "No regulations met relevance threshold"
-                analysis["confidence"] = 0.2
+                # Fallback text parsing
+                return self._extract_insights_from_llm_text(llm_response)
+                
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse enhanced LLM JSON response: {e}")
+            return self._extract_insights_from_llm_text(llm_response)
+    
+    def _extract_insights_from_llm_text(self, text: str) -> Dict:
+        """Extract insights when JSON parsing fails"""
+        analysis = {
+            "reasoning": f"LLM text analysis: {text[:200]}...",
+            "confidence": 0.7,
+            "llm_enhanced": True,
+            "applicable_regulations": []
+        }
+        
+        # Enhanced text extraction
+        regulations = ["COPPA", "GDPR", "CCPA", "DSA", "DMA"]
+        found_regs = [reg for reg in regulations if reg.lower() in text.lower()]
+        
+        for reg in found_regs:
+            analysis["applicable_regulations"].append({
+                "regulation": reg,
+                "relevance": 0.8,
+                "content_excerpt": "Mentioned in LLM text analysis",
+                "requirements": ["See LLM analysis for details"],
+                "jurisdiction": "Various",
+                "compliance_risk": "medium"
+            })
+        
+        # Risk assessment from text
+        if "high risk" in text.lower() or "critical" in text.lower():
+            analysis["risk_level"] = "high"
+        elif "low risk" in text.lower() or "minimal" in text.lower():
+            analysis["risk_level"] = "low"
+        else:
+            analysis["risk_level"] = "medium"
         
         return analysis
     
