@@ -1,16 +1,21 @@
 Overview
+
 This project is a compliance analysis tool designed to help developers, businesses, and organizations align their digital products with legal and regulatory requirements. It provides a structured way to assess whether product features comply with frameworks such as GDPR, CCPA, COPPA, the Digital Services Act, and the Australian Privacy Principles.  
 
 Core Functionality  
+
 The system uses AI and natural language processing to analyze feature descriptions. It automatically extracts compliance-related topics such as age verification, parental consent, and data collection, identifies geographic relevance, and matches these findings against applicable laws and regulations.  
 
 Insight Generation  
+
 The tool goes beyond simple keyword detection by calculating relevance scores. These scores account for factors such as geographic overlap, topic alignment, and statutory references. This enables the system to provide meaningful, weighted insights rather than generic matches. It also generates compliance action items, offering practical recommendations that teams can directly implement.  
 
 Adaptability and Extensibility  
+
 The system is built with a modular and extensible design. A centralized configuration file allows for customization of compliance topics, geographic regions, and severity levels. Its architecture makes it easy to extend for new industries, jurisdictions, or regulatory updates.  
 
 Industry Applications  
+
 While the tool is broadly applicable, it is particularly valuable for regulated industries such as healthcare, finance, and digital services. By integrating into development workflows, it helps ensure that features are designed with compliance in mind, reducing legal risks and supporting trust with users and regulators.  
 
 
